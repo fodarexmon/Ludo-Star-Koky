@@ -165,7 +165,8 @@ export function nextActiveSeat(s: GameState, from: number): number {
 }
 
 export function gameOver(s: GameState): boolean {
-  const active = s.players.filter((_, i) => !s.tokens[i].every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(i));
+  if (!s || !s.players || !s.tokens) return false;
+  const active = s.players.filter((_, i) => !s.tokens[i]?.every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(i));
   return active.length <= 1;
 }
 
