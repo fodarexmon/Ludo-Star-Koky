@@ -930,7 +930,7 @@ function RoomPage() {
     );
   }
 
-  if (!game) return <div className="p-6 text-center text-muted-foreground">Loading game…</div>;
+  if (!game || !game.players) return <div className="p-6 text-center text-muted-foreground">Loading game…</div>;
 
   return (
     <OnlineMatch
