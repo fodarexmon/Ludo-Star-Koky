@@ -92,7 +92,7 @@ function Match({ game, setGame, onExit }: { game: GameState; setGame: (g: GameSt
   const currentPlayer = game.players[game.turn];
   const isGameOver = gameOver(game);
   const canRoll = !game.dice && !game.awaitingMove && !isGameOver && !isAnimating && !rolling;
-  const finishedCount = (seat: number) => game.tokens[seat].filter((d) => d === FINISHED).length;
+  const finishedCount = (seat: number) => (game.tokens?.[seat] || []).filter((d) => d === FINISHED).length;
   const aiTimer = useRef<number | null>(null);
   const passTimer = useRef<number | null>(null);
 

@@ -1400,7 +1400,7 @@ function OnlineMatch({
   const currentPlayer = game.players[game.turn];
   const isGameOver = gameOver(game);
   const finishedCount = (seat: number) =>
-    game.tokens[seat].filter((d: number) => d === FINISHED).length;
+    (game.tokens?.[seat] || []).filter((d: number) => d === FINISHED).length;
   const myTurn = mySeat === game.turn;
   const canRoll =
     myTurn && !game.dice && !game.awaitingMove && !isAnimating && !isGameOver && !rolling && !isWaitingForServer;
@@ -1702,7 +1702,7 @@ function OnlineMatch({
                       p.userId !== userId &&
                       !isGameOver &&
                       displayGame.players.length > 2 &&
-                      displayGame.players.filter((rp: any) => !rp.hasResigned).length > 2 && (
+                      (displayGame.players || []).filter((rp: any) => !rp.hasResigned).length > 2 && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
