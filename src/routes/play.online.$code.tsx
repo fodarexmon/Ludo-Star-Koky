@@ -306,7 +306,7 @@ function RoomPage() {
   const game: GameState | null =
     room?.status === "playing" || room?.status === "finished" ? (rtdbGame || (room.state as GameState)) : null;
   const mySeat = game 
-    ? game.players.findIndex((p) => p.userId === userId)
+    ? game.players?.findIndex((p) => p.userId === userId) ?? players.find((p) => p.user_id === userId)?.seat ?? -1
     : players.find((p) => p.user_id === userId)?.seat ?? -1;
   const isHost = room?.host_id === userId;
 

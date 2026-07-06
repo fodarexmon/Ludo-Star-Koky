@@ -9,31 +9,33 @@ export function useNotifications(userId: string | null | undefined) {
     if (!userId || !messaging) return;
 
     // Request permission and get token
-    async function requestPermission() {
+    async function initNotifications() {
+      if (!("Notification" in window)) return;
+      
       try {
-        const permission = await Notification.requestPermission();
+        let permission = Notification.permission;
+        
+        // Only request if not already denied
+        if (permission === "default") {
+          permission = await Notification.requestPermission();
+        }
+
         if (permission === "granted") {
           const currentToken = await getToken(messaging!, {
-            // Optional: VAPID key is needed if you generated one in Firebase Console -> Project Settings -> Cloud Messaging -> Web configuration
             // vapidKey: "YOUR_PUBLIC_VAPID_KEY_HERE"
           });
           if (currentToken) {
-            // Save token to Firestore profile
             await updateDoc(doc(db, "profiles", userId!), {
               fcmToken: currentToken
             });
-          } else {
-            console.log("No registration token available. Request permission to generate one.");
           }
-        } else {
-          console.log("Notification permission not granted.");
         }
       } catch (err) {
-        console.error("An error occurred while retrieving token. ", err);
+        console.warn("Could not init notifications", err);
       }
     }
 
-    requestPermission();
+    initNotifications();
 
     // Listen to foreground messages
     const unsubscribe = onMessage(messaging, (payload) => {
