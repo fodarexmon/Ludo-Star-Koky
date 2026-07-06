@@ -1,0 +1,139 @@
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  reward: number;
+  condition: (stats: any, profile: any) => boolean;
+}
+
+export const ACHIEVEMENTS: Achievement[] = [
+  {
+    id: "first_win",
+    title: "بداية المشوار",
+    description: "الفوز بأول مباراة أونلاين.",
+    icon: "🌟",
+    reward: 100,
+    condition: (stats) => (stats?.wins || 0) >= 1,
+  },
+  {
+    id: "fierce",
+    title: "الشرس",
+    description: "أكل قطع الخصم 20 مرة.",
+    icon: "⚔️",
+    reward: 150,
+    condition: (stats) => (stats?.piecesEaten || 0) >= 20,
+  },
+  {
+    id: "pro",
+    title: "المحترف",
+    description: "الفوز بـ 10 مباريات أونلاين.",
+    icon: "🎖️",
+    reward: 300,
+    condition: (stats) => (stats?.wins || 0) >= 10,
+  },
+  {
+    id: "crowned_king",
+    title: "الملك المتوج",
+    description: "الفوز بالمركز الأول دون أن تُؤكل أي من قطعك.",
+    icon: "🛡️",
+    reward: 200,
+    condition: (stats) => (stats?.flawlessWins || 0) >= 1,
+  },
+  {
+    id: "outstanding",
+    title: "المتميز",
+    description: "الفوز بالمركز الأول 3 مرات على التوالي.",
+    icon: "🔥",
+    reward: 250,
+    condition: (stats) => (stats?.maxWinStreak || 0) >= 3,
+  },
+  {
+    id: "the_player",
+    title: "اللعيب",
+    description: "لعب 100 مباراة أونلاين.",
+    icon: "🎲",
+    reward: 500,
+    condition: (stats) => (stats?.gamesPlayed || 0) >= 100,
+  },
+  {
+    id: "wealthy",
+    title: "جامع الثروة",
+    description: "جمع 1000 نقطة (Points).",
+    icon: "💰",
+    reward: 500,
+    condition: (stats) => (stats?.totalPoints || 0) >= 1000,
+  },
+  {
+    id: "pro_killer",
+    title: "القاتل المحترف",
+    description: "أكل قطع الخصم 100 مرة.",
+    icon: "🥷",
+    reward: 600,
+    condition: (stats) => (stats?.piecesEaten || 0) >= 100,
+  },
+  {
+    id: "ludo_king",
+    title: "ملك اللودو",
+    description: "الفوز بـ 50 مباراة أونلاين.",
+    icon: "👑",
+    reward: 1000,
+    condition: (stats) => (stats?.wins || 0) >= 50,
+  },
+  {
+    id: "filthy_rich",
+    title: "فاحش الثراء",
+    description: "الوصول إلى 2500 كوينز.",
+    icon: "💎",
+    reward: 800,
+    condition: (stats) => (stats?.coins || 0) >= 2500,
+  },
+  {
+    id: "giant",
+    title: "العملاق",
+    description: "الفوز بالمركز الأول 5 مرات على التوالي.",
+    icon: "👹",
+    reward: 800,
+    condition: (stats) => (stats?.maxWinStreak || 0) >= 5,
+  },
+  {
+    id: "ludo_lover",
+    title: "عاشق اللودو",
+    description: "لعب 500 مباراة أونلاين.",
+    icon: "🎲",
+    reward: 2000,
+    condition: (stats) => (stats?.gamesPlayed || 0) >= 500,
+  },
+  {
+    id: "untouchable",
+    title: "المعصوم",
+    description: "الفوز دون أن تُؤكل أي من قطعك 30 مرة.",
+    icon: "👼",
+    reward: 1500,
+    condition: (stats) => (stats?.flawlessWins || 0) >= 30,
+  },
+  {
+    id: "butcher",
+    title: "سفاح اللودو",
+    description: "أكل قطع الخصم 500 مرة.",
+    icon: "🪓",
+    reward: 2000,
+    condition: (stats) => (stats?.piecesEaten || 0) >= 500,
+  },
+  {
+    id: "winning_legend",
+    title: "أسطورة الانتصارات",
+    description: "الفوز بالمركز الأول 10 مرات على التوالي.",
+    icon: "🐉",
+    reward: 3000,
+    condition: (stats) => (stats?.maxWinStreak || 0) >= 10,
+  },
+  {
+    id: "gold_king",
+    title: "إمبراطور الذهب",
+    description: "الوصول إلى 10,000 كوينز.",
+    icon: "🏦",
+    reward: 5000,
+    condition: (stats) => (stats?.coins || 0) >= 10000,
+  },
+];

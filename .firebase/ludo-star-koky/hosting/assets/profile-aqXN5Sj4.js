@@ -1,0 +1,1 @@
+const r="ludo:profile",t={displayName:"Player",country:"US",avatarId:"a1"};function n(){if(typeof window>"u")return t;try{const e=localStorage.getItem(r);return e?{...t,...JSON.parse(e)}:t}catch{return t}}function o(e){typeof window>"u"||localStorage.setItem(r,JSON.stringify(e))}export{n as l,o as s};
