@@ -841,9 +841,9 @@ function RoomPage() {
                   const prof = profiles[fid];
                   if (!prof) return null;
                   // Online if lastActive < 2 min ago
+                  // Online if lastActive < 2 min ago
                   const isOnline =
                     prof.isOnline && prof.lastActive && Date.now() - prof.lastActive < 120000;
-                  if (!isOnline) return null;
                   return (
                     <button
                       key={fid}
@@ -1312,14 +1312,25 @@ function ChatMenu({
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    <input
-                      type="text"
-                      maxLength={30}
-                      placeholder="اكتب رسالتك هنا..."
-                      value={customText}
-                      onChange={(e) => setCustomText(e.target.value)}
-                      className="p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-primary w-full text-right"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        maxLength={30}
+                        placeholder="اكتب رسالتك هنا..."
+                        value={customText}
+                        onChange={(e) => setCustomText(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        className="p-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-primary w-full text-right pl-12"
+                      />
+                      {customText && (
+                        <button
+                          onClick={() => setCustomText("")}
+                          className="absolute left-3 p-1 bg-white/10 rounded-full w-7 h-7 flex items-center justify-center text-xs text-white hover:bg-white/20"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                     <button
                       onClick={() => {
                         if (customText.trim()) {

@@ -33,6 +33,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         body: body || 'You have a new notification!',
       },
       data: data || {},
+      webpush: {
+        fcmOptions: {
+          link: data?.url || '/'
+        }
+      }
     };
 
     const response = await getMessaging().send({

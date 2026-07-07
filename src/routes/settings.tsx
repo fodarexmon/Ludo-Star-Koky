@@ -6,6 +6,7 @@ import { COUNTRIES } from "@/data/countries";
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { requestNotificationPermission } from "@/hooks/useNotifications";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -155,6 +156,20 @@ function SettingsPage() {
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${voiceChatDisabled ? 'bg-primary' : 'bg-muted'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${voiceChatDisabled ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between bg-secondary/50 p-4 rounded-xl border border-border">
+            <div>
+              <div className="font-medium">تفعيل الإشعارات 🔔</div>
+              <div className="text-xs text-muted-foreground mt-1">احصل على إشعارات دعوات اللعب حتى واللعبة مغلقة.</div>
+            </div>
+            <button 
+              onClick={() => userId && requestNotificationPermission(userId)}
+              disabled={!userId}
+              className="btn-game px-4 py-2 text-sm disabled:opacity-50"
+            >
+              تفعيل
             </button>
           </div>
 

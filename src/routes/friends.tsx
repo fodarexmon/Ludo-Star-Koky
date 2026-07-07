@@ -271,18 +271,12 @@ function FriendsPage() {
                           </div>
                         </div>
                         <div>
-                          {isOnline ? (
-                            <button 
-                              onClick={() => inviteFriend(friend.id, friend.display_name)}
-                              className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-4 py-2 text-sm whitespace-nowrap"
-                            >
-                              دعوة للعب 🎮
-                            </button>
-                          ) : (
-                            <button disabled className="btn-ghost px-4 py-2 text-sm opacity-50 cursor-not-allowed whitespace-nowrap">
-                              دعوة للعب 🎮
-                            </button>
-                          )}
+                          <button 
+                            onClick={() => inviteFriend(friend.id, friend.display_name)}
+                            className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-4 py-2 text-sm whitespace-nowrap"
+                          >
+                            دعوة للعب 🎮
+                          </button>
                         </div>
                       </div>
                     );
