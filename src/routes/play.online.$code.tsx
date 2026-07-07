@@ -15,7 +15,7 @@ import {
   increment,
   runTransaction,
 } from "firebase/firestore";
-import { ref, onValue, set, runTransaction as runRTDBTransaction } from "firebase/database";
+import { ref, onValue, set, get, runTransaction as runRTDBTransaction } from "firebase/database";
 import { rtdb } from "@/integrations/firebase/client";
 import { usePresence } from "@/hooks/usePresence";
 import { toast } from "sonner";
@@ -336,15 +336,18 @@ function RoomPage() {
   async function startGame() {
     if (!room || (!isHost && !room.isQuickMatch) || players.length < 2) return;
     const sortedPlayers = [...players].sort((a, b) => a.seat - b.seat);
-    const gamePlayers: Player[] = sortedPlayers.map((p) => ({
-      seat: p.seat,
-      color: COLORS[p.seat],
-      name: profiles[p.user_id]?.display_name ?? "Player",
-      avatarId: profiles[p.user_id]?.avatar_id ?? "a1",
-      country: profiles[p.user_id]?.country || null,
-      kind: "remote",
-      userId: p.user_id,
-    }));
+    const gamePlayers: Player[] = sortedPlayers.map((p) => {
+      const pl: Player = {
+        seat: p.seat,
+        color: COLORS[p.seat],
+        name: profiles[p.user_id]?.display_name ?? "Player",
+        avatarId: profiles[p.user_id]?.avatar_id ?? "a1",
+        kind: "remote",
+        userId: p.user_id,
+      };
+      if (profiles[p.user_id]?.country) pl.country = profiles[p.user_id]?.country;
+      return pl;
+    });
     const init = createGame(gamePlayers);
     init.turnStartTime = getServerTime();
     
