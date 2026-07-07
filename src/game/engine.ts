@@ -93,7 +93,9 @@ export function applyMove(state: GameState, tokenIdx: number, now: number = Date
     }
   }
 
-  s.lastMove = { seat, token: tokenIdx, from, to, capture: captures.length ? captures : undefined, timestamp: now };
+  const moveData: any = { seat, token: tokenIdx, from, to, timestamp: now };
+  if (captures.length) moveData.capture = captures;
+  s.lastMove = moveData;
 
   // check finish
   if (s.tokens[seat]?.every((x) => x === FINISHED)) {

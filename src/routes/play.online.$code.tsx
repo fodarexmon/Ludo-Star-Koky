@@ -341,7 +341,7 @@ function RoomPage() {
       color: COLORS[p.seat],
       name: profiles[p.user_id]?.display_name ?? "Player",
       avatarId: profiles[p.user_id]?.avatar_id ?? "a1",
-      country: profiles[p.user_id]?.country,
+      country: profiles[p.user_id]?.country || null,
       kind: "remote",
       userId: p.user_id,
     }));
