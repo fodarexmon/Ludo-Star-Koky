@@ -14,6 +14,7 @@ import {
   where,
   increment,
   runTransaction,
+  deleteField,
 } from "firebase/firestore";
 import { ref, onValue, set, get, runTransaction as runRTDBTransaction } from "firebase/database";
 import { rtdb } from "@/integrations/firebase/client";
@@ -156,13 +157,9 @@ function RoomPage() {
           }
         }
         
-        // Host migration
+        // Host migration (disabled) - if host leaves, room is abandoned
         if (r.host_id === uid) {
-          if (newPlayers.length > 0) {
-            updates.host_id = newPlayers[0].user_id;
-          } else {
-            updates.status = "abandoned";
-          }
+          updates.status = "abandoned";
         }
         
         updateDoc(doc(db, "rooms", code), updates).catch(() => {});
@@ -256,6 +253,13 @@ function RoomPage() {
         return;
       }
       const r = docSnap.data() as RoomRow;
+      if (r.status === "abandoned") {
+        if (userId && r.host_id !== userId) {
+          window.alert("المضيف غادر الغرفة. تم إنهاء المباراة وتوجيهك للقائمة الرئيسية.");
+        }
+        nav({ to: "/play/online" });
+        return;
+      }
       setRoom(r);
 
       const pl = r.players || [];
@@ -363,8 +367,21 @@ function RoomPage() {
 
   async function nextMatch() {
     if (!room || !isHost || !game) return;
-    const init = createGame(game.players);
+
+    // Mark players who left the room as resigned in the next match
+    const currentActiveIds = room.players?.map((p: any) => p.user_id) || [];
+    const nextPlayers = game.players.map((p) => {
+      if (p.kind === "human" && p.userId && !currentActiveIds.includes(p.userId)) {
+        return { ...p, hasResigned: true };
+      }
+      return p;
+    });
+
+    const init = createGame(nextPlayers);
     init.turnStartTime = getServerTime();
+    init.resigned = nextPlayers
+      .map((p, idx) => (p.hasResigned ? idx : -1))
+      .filter((idx) => idx !== -1);
 
     // Write initial state to RTDB
     await set(ref(rtdb, `rooms/${code}/state`), init);
@@ -377,6 +394,22 @@ function RoomPage() {
 
   async function leave() {
     if (!room || !userId) return;
+    
+    // If host leaves, abandon the room
+    if (room.host_id === userId) {
+      await updateDoc(doc(db, "rooms", code), { status: "abandoned" });
+      nav({ to: "/play/online" });
+      return;
+    }
+
+    // Check if non-host leaves during unfinished Best-of-5
+    const isGameOver = game && gameOver(game);
+    const isBestOf5Unfinished = (room.matchCount || 1) < 5 && !room.isQuickMatch && isGameOver;
+    if (isBestOf5Unfinished) {
+      const confirmed = window.confirm(`هناك ${5 - (room.matchCount || 1)} مباريات متبقية. هل أنت متأكد من رغبتك في الخروج والتخلي عن تقدمك؟`);
+      if (!confirmed) return;
+    }
+
     const newPlayers = players.filter((p) => p.user_id !== userId);
     const updates: any = { players: newPlayers };
     if (room.isQuickMatch) {
@@ -386,13 +419,8 @@ function RoomPage() {
       }
     }
     
-    // Host migration
-    if (room.host_id === userId) {
-      if (newPlayers.length > 0) {
-        updates.host_id = newPlayers[0].user_id;
-      } else {
-        updates.status = "abandoned";
-      }
+    if (isBestOf5Unfinished && room.scores && room.scores[userId]) {
+      updates[`scores.${userId}`] = deleteField();
     }
     
     await updateDoc(doc(db, "rooms", code), updates);
@@ -1033,10 +1061,14 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
   const [stage, setStage] = useState<"start" | "moving" | "done">("start");
 
   useEffect(() => {
-    const senderColor = players.find((p) => p.user_id === chat.senderId)?.color;
-    const receiverColor = chat.receiverId
-      ? players.find((p) => p.user_id === chat.receiverId)?.color
+    const COLORS = ["red", "green", "yellow", "blue"];
+    const senderSeat = players.find((p) => p.user_id === chat.senderId)?.seat;
+    const receiverSeat = chat.receiverId
+      ? players.find((p) => p.user_id === chat.receiverId)?.seat
       : undefined;
+
+    const senderColor = senderSeat !== undefined ? COLORS[senderSeat] : undefined;
+    const receiverColor = receiverSeat !== undefined ? COLORS[receiverSeat] : undefined;
 
     const senderEl = document.getElementById(senderColor ? `base-${senderColor}` : "board-center");
     const receiverEl = receiverColor
@@ -1594,7 +1626,8 @@ function OnlineMatch({
           onHome={leave} 
           room={room} 
           matchCount={room.matchCount || 1}
-          canNextMatch={isHost && (room.matchCount || 1) < 5 && !room.isQuickMatch}
+          canNextMatch={(room.matchCount || 1) < 5}
+          isHost={isHost}
           onNextMatch={nextMatch}
           currentUserId={userId || undefined}
           myFriends={myFriends}

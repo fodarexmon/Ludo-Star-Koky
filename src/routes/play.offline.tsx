@@ -211,13 +211,19 @@ function Match({ game, setGame, onExit }: { game: GameState; setGame: (g: GameSt
     return board;
   }, [game, isGameOver]);
 
+  const handleExit = () => {
+    if (!isGameOver) {
+      if (!window.confirm("هل أنت متأكد من رغبتك في الخروج؟ سيتم فقدان تقدمك الحالي في المباراة.")) return;
+    }
+    onExit();
+  };
+
   return (
     <div className="min-h-screen p-3 md:p-6 relative">
       {isGameOver && <Podium game={game} onHome={onExit} />}
       <div className="mx-auto max-w-6xl">
         <div className="mb-3 flex items-center justify-between">
-          <button onClick={onExit} className="btn-ghost">← Leave</button>
-          <Link to="/" className="btn-ghost">Home</Link>
+          <button onClick={handleExit} className="btn-ghost">← خروج</button>
         </div>
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="panel">

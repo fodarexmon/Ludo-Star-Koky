@@ -25,6 +25,7 @@ export function Podium({
   onAddFriend?: (id: string, name: string) => void;
   myFriends?: Set<string>;
   currentUserId?: string;
+  isHost?: boolean;
 }) {
   const numPlayers = game.players.length;
   
@@ -191,10 +192,15 @@ export function Podium({
         <Button onClick={onHome} size="lg" variant="outline" className="px-8 py-6 text-lg rounded-full border-white/20 bg-black/50 text-white hover:bg-white/10 transition-all">
           العودة للرئيسية
         </Button>
-        {canNextMatch && (
+        {canNextMatch && isHost && (
           <Button onClick={onNextMatch} size="lg" className="px-12 py-6 text-lg font-bold rounded-full bg-gradient-to-r from-primary to-accent text-white shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all hover:scale-105 border-0">
             المباراة القادمة ({matchCount + 1}/5) ⏭️
           </Button>
+        )}
+        {canNextMatch && !isHost && (
+          <div className="flex items-center px-8 py-4 text-sm font-bold rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+            ⏳ في انتظار المضيف لبدء المباراة القادمة...
+          </div>
         )}
       </div>
     </div>
