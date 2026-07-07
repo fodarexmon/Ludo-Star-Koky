@@ -514,7 +514,7 @@ function RoomPage() {
 
     if (isGameOver) {
       status = "finished";
-      const board = [...next.winners];
+      const board = [...(next.winners || [])];
       next.players.forEach((p, i) => {
         if (!board.includes(i) && !p.hasResigned) board.push(i);
       });
@@ -575,6 +575,8 @@ function RoomPage() {
 
     const d = rollDice();
     const next = recordRoll(game, d, getServerTime());
+    next.missedTurns = next.missedTurns || {};
+    next.missedTurns[mySeat] = 0;
 
     // Brief delay for local dice animation, then push ONCE
     await new Promise((r) => setTimeout(r, 600));
@@ -612,6 +614,8 @@ function RoomPage() {
     setIsWaitingForServer(true);
     try {
       const next = applyMove(game, tokenIdx, getServerTime());
+      next.missedTurns = next.missedTurns || {};
+      next.missedTurns[mySeat] = 0;
       await handleStateChange(next);
     } catch (e) {
       actionPendingRef.current = false;
@@ -628,27 +632,47 @@ function RoomPage() {
       if (mySeat === -1 && !isHost) return; // Spectators don't run the timer
       const elapsed = getServerTime() - game.turnStartTime;
       
-      // Host fires at 60s. If host is dead/disconnected, Seat 0 fires at 62s, Seat 1 at 64s, etc.
-      // This prevents the game from getting stuck at 0 forever.
-      const delay = isHost ? 60000 : 60000 + ((mySeat + 1) * 2000);
+      // The ACTIVE player is responsible for their own 60s timer.
+      // If they disconnect, the Host steps in at 63s.
+      // If the Host is also dead, other players step in at 65s, 67s, etc.
+      let delay = 60000;
+      if (mySeat !== game.turn) {
+        delay = isHost ? 63000 : 65000 + (mySeat * 2000);
+      }
       
       if (elapsed < delay) return;
 
       timerBusyRef.current = true;
       try {
+        let finalState: typeof game | null = null;
         if (!game.dice && !game.awaitingMove) {
           // Player didn't roll in time — auto-roll
           const d = rollDice();
-          await handleStateChange(recordRoll(game, d, getServerTime()));
+          finalState = recordRoll(game, d, getServerTime());
         } else if (game.awaitingMove && game.dice) {
           // Player didn't pick a token — auto-move
           const t = chooseMove(game, game.dice!);
           const moveIdx = t >= 0 ? t : 0;
-          await handleStateChange(applyMove(game, moveIdx, getServerTime()));
+          finalState = applyMove(game, moveIdx, getServerTime());
         } else if (game.dice && !game.awaitingMove) {
           // STUCK: dice visible but no action possible — reset turn
           const d = rollDice();
-          await handleStateChange(recordRoll({ ...game, dice: null, awaitingMove: false }, d, getServerTime()));
+          finalState = recordRoll({ ...game, dice: null, awaitingMove: false }, d, getServerTime());
+        }
+
+        if (finalState) {
+          finalState.missedTurns = finalState.missedTurns || {};
+          const currentMissed = (finalState.missedTurns[game.turn] || 0) + 1;
+          finalState.missedTurns[game.turn] = currentMissed;
+
+          if (currentMissed >= 5) {
+            console.log(`Player ${game.turn} missed 5 turns. Auto-kicking...`);
+            finalState = resignPlayer(finalState, game.turn, getServerTime());
+            await updateDoc(doc(db, "rooms", code), {
+              [`reactions.${game.turn}`]: { emoji: "💤", sender: game.turn, timestamp: getServerTime() },
+            });
+          }
+          await handleStateChange(finalState);
         }
       } catch (e) {
         console.error("[TIMER] checkTimer failed:", e);
@@ -657,9 +681,9 @@ function RoomPage() {
       }
     };
 
-    const interval = setInterval(checkTimer, 3000);
+    const interval = setInterval(checkTimer, 500);
     return () => clearInterval(interval);
-  }, [game, room, isHost, mySeat]);
+  }, [game, room, isHost, mySeat, code, userId]);
 
   // Realtime Database Presence Listener for Disconnections
   useEffect(() => {
@@ -1651,6 +1675,11 @@ function OnlineMatch({
                     {currentPlayer.color}
                   </div>
                 </div>
+                {displayGame.missedTurns?.[displayGame.turn] > 0 && (
+                  <div className="bg-destructive/10 text-destructive text-xs font-bold px-2 py-1 rounded-md border border-destructive/20 animate-pulse" title="مرات تفويت الدور">
+                    ⚠️ {displayGame.missedTurns[displayGame.turn]} / 5
+                  </div>
+                )}
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <Dice
@@ -1690,6 +1719,11 @@ function OnlineMatch({
                         active={i === displayGame.turn && !isGameOver}
                         finishedCount={finishedCount(i)}
                       />
+                      {displayGame.missedTurns?.[i] > 0 && (
+                        <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-destructive/90 text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse z-10" title="مرات تفويت اللعب">
+                          ⚠️ {displayGame.missedTurns[i]}/5
+                        </div>
+                      )}
                     </div>
                     {p.userId === userId && !isHost && !isGameOver && (
                       <button

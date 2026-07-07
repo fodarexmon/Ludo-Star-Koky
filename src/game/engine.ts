@@ -84,6 +84,9 @@ export function applyMove(state: GameState, tokenIdx: number, now: number = Date
         if (oAbs === absIdx) {
           s.tokens[other][ot] = 0;
           captures.push({ seat: other, token: ot });
+          if (!s.stats) s.stats = { kills: {}, deaths: {} };
+          if (!s.stats.kills) s.stats.kills = {};
+          if (!s.stats.deaths) s.stats.deaths = {};
           if (!s.stats.kills[seat]) s.stats.kills[seat] = 0;
           s.stats.kills[seat]++;
           if (!s.stats.deaths[other]) s.stats.deaths[other] = 0;
@@ -99,6 +102,7 @@ export function applyMove(state: GameState, tokenIdx: number, now: number = Date
 
   // check finish
   if (s.tokens[seat]?.every((x) => x === FINISHED)) {
+    if (!s.winners) s.winners = [];
     if (!s.winners.includes(seat)) s.winners.push(seat);
   }
 
