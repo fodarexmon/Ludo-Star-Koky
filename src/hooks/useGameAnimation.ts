@@ -119,7 +119,7 @@ export function useGameAnimation(game: GameState | null, onAnimationComplete?: (
         } else {
           animatingRef.current = false;
           
-          if (game.winners.length > 0 && prevGame.winners.length === 0) {
+          if ((game.winners || []).length > 0 && (prevGame.winners || []).length === 0) {
             playWinSound();
           }
 

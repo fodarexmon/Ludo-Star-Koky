@@ -96,7 +96,7 @@ export function applyMove(state: GameState, tokenIdx: number, now: number = Date
   s.lastMove = { seat, token: tokenIdx, from, to, capture: captures.length ? captures : undefined, timestamp: now };
 
   // check finish
-  if (s.tokens[seat].every((x) => x === FINISHED)) {
+  if (s.tokens[seat]?.every((x) => x === FINISHED)) {
     if (!s.winners.includes(seat)) s.winners.push(seat);
   }
 
@@ -104,7 +104,7 @@ export function applyMove(state: GameState, tokenIdx: number, now: number = Date
   let extraTurn = dice === 6 || captures.length > 0 || to === FINISHED;
   
   // If the player just finished their last token, they cannot have an extra turn
-  if (s.tokens[seat].every((x) => x === FINISHED || x === -1)) {
+  if (s.tokens[seat]?.every((x) => x === FINISHED || x === -1)) {
     extraTurn = false;
   }
 
@@ -159,7 +159,7 @@ export function nextActiveSeat(s: GameState, from: number): number {
   const n = s.players.length;
   for (let i = 1; i <= n; i++) {
     const seat = (from + i) % n;
-    if (!s.tokens[seat].every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(seat)) return seat;
+    if (!s.tokens[seat]?.every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(seat)) return seat;
   }
   return from;
 }

@@ -677,11 +677,10 @@ function RoomPage() {
           
           setTimeout(async () => {
              try {
-               const latestRoomSnap = await getDoc(doc(db, "rooms", code));
-               const latestGame = latestRoomSnap.data()?.state;
+               const latestGameSnap = await get(ref(rtdb, `rooms/${code}/state`));
+               const latestGame = latestGameSnap.val();
                if (latestGame && !latestGame.resigned?.includes(p.seat) && !gameOver(latestGame)) {
                   console.log(`Player ${p.seat} (${p.user_id}) disconnected. Forcing resign...`);
-                  const next = resignPlayer(latestGame, p.seat);
                   
                   // Force resign locally and in RTDB immediately
                   await runRTDBTransaction(ref(rtdb, `rooms/${code}/state`), (current) => {
@@ -1431,8 +1430,8 @@ function OnlineMatch({
   }, [game?.turnStartTime, isGameOver, getServerTime]);
 
   const originalMatchRanks = useMemo(() => {
-    const board = [...game.winners];
-    game.players.forEach((p: any, i: number) => {
+    const board = [...(game.winners || [])];
+    game.players?.forEach((p: any, i: number) => {
       if (!board.includes(i) && !p.hasResigned) board.push(i);
     });
     const reversedResigned = [...(game.resigned || [])].reverse();
@@ -1470,7 +1469,7 @@ function OnlineMatch({
       const myPlayer = game.players.find((p: any) => p.userId === userId);
       if (!myPlayer) return;
 
-      const board = [...game.winners];
+      const board = [...(game.winners || [])];
       game.players.forEach((p: any, i: number) => {
         if (!board.includes(i) && !p.hasResigned) board.push(i);
       });

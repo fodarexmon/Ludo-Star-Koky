@@ -29,7 +29,7 @@ export function Podium({
   const numPlayers = game.players.length;
   
   // Calculate final ranks
-  const board = [...game.winners];
+  const board = [...(game.winners || [])];
   game.players.forEach((p, i) => { if (!board.includes(i) && !p.hasResigned) board.push(i); });
   game.players.forEach((p, i) => { if (!board.includes(i)) board.push(i); });
 

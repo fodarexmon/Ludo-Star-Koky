@@ -200,7 +200,7 @@ function Match({ game, setGame, onExit }: { game: GameState; setGame: (g: GameSt
 
   const leaderboard = useMemo(() => {
     if (!isGameOver) return [];
-    const board = [...game.winners];
+    const board = [...(game.winners || [])];
     game.players.forEach((p, i) => {
       if (!board.includes(i) && !p.hasResigned) board.push(i);
     });
