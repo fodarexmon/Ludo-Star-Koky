@@ -179,9 +179,13 @@ export function gameOver(s: GameState): boolean {
 export function resignPlayer(state: GameState, seat: number, now: number = Date.now()): GameState {
   const s: GameState = JSON.parse(JSON.stringify(state));
   if (!s.resigned) s.resigned = [];
-  s.players[seat].hasResigned = true;
+  if (s.players[seat]) {
+    s.players[seat].hasResigned = true;
+  }
   if (!s.resigned.includes(seat)) s.resigned.push(seat);
-  s.tokens[seat] = [-1, -1, -1, -1];
+  if (s.tokens[seat]) {
+    s.tokens[seat] = [-1, -1, -1, -1];
+  }
   
   if (s.turn === seat) {
     s.dice = null;

@@ -15,6 +15,7 @@ export function Podium({
   onAddFriend,
   myFriends = new Set(),
   currentUserId,
+  isHost,
 }: { 
   game: GameState; 
   onHome: () => void; 

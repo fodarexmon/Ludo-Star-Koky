@@ -841,7 +841,6 @@ function RoomPage() {
                   const prof = profiles[fid];
                   if (!prof) return null;
                   // Online if lastActive < 2 min ago
-                  // Online if lastActive < 2 min ago
                   const isOnline =
                     prof.isOnline && prof.lastActive && Date.now() - prof.lastActive < 120000;
                   return (
