@@ -717,7 +717,9 @@ function RoomPage() {
   useEffect(() => {
     if (!room || room.status !== "playing" || !game || gameOver(game) || !userId) return;
 
+    let cancelled = false;
     const unsubs: (() => void)[] = [];
+    const pendingTimers: ReturnType<typeof setTimeout>[] = [];
 
     players.forEach((p) => {
       if (p.user_id === userId) return; // Don't listen to yourself
@@ -725,15 +727,18 @@ function RoomPage() {
 
       const pStatusRef = ref(rtdb, `/status/${p.user_id}`);
       const unsub = onValue(pStatusRef, (snap) => {
+        if (cancelled) return;
         const val = snap.val();
         if (val && val.state === "offline") {
           // Staggered delay: Host acts immediately, others wait in case host handles it
           const delay = isHost ? 500 : 3000 + (mySeat * 2000);
           
-          setTimeout(async () => {
+          const timer = setTimeout(async () => {
+             if (cancelled) return; // Effect was cleaned up, game likely over
              try {
                const latestGameSnap = await get(ref(rtdb, `rooms/${code}/state`));
                const latestGame = latestGameSnap.val();
+               if (cancelled) return; // Double-check after async
                if (latestGame && !latestGame.resigned?.includes(p.seat) && !gameOver(latestGame)) {
                   console.log(`Player ${p.seat} (${p.user_id}) disconnected. Forcing resign...`);
                   
@@ -748,15 +753,20 @@ function RoomPage() {
                   });
                }
              } catch (e) {
-               console.error("Disconnect kick failed:", e);
+               if (!cancelled) console.error("Disconnect kick failed:", e);
              }
           }, delay);
+          pendingTimers.push(timer);
         }
       });
       unsubs.push(() => unsub());
     });
 
-    return () => unsubs.forEach((fn) => fn());
+    return () => {
+      cancelled = true;
+      unsubs.forEach((fn) => fn());
+      pendingTimers.forEach((t) => clearTimeout(t));
+    };
   }, [game, room, isHost, mySeat, code, players, userId]);
 
   function copyCode() {
