@@ -1,18 +1,43 @@
-const getAudioCtx = () => {
+const getAudioEnv = () => {
   if (typeof window === 'undefined') return null;
   // Create context only on first user interaction to comply with browser autoplay policies
   if (!(window as any)._ludoAudioCtx) {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (AudioContextClass) {
-      (window as any)._ludoAudioCtx = new AudioContextClass();
+      const ctx = new AudioContextClass();
+      (window as any)._ludoAudioCtx = ctx;
+
+      // Create a master compressor to prevent clipping when boosting volume
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-24, ctx.currentTime);
+      compressor.knee.setValueAtTime(30, ctx.currentTime);
+      compressor.ratio.setValueAtTime(12, ctx.currentTime);
+      compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+      compressor.release.setValueAtTime(0.25, ctx.currentTime);
+
+      // Create a master gain to boost overall volume (3x boost)
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(3.0, ctx.currentTime);
+
+      masterGain.connect(compressor);
+      compressor.connect(ctx.destination);
+
+      (window as any)._ludoMasterBus = masterGain;
     }
   }
-  return (window as any)._ludoAudioCtx as AudioContext;
+  
+  if (!(window as any)._ludoAudioCtx) return null;
+
+  return {
+    ctx: (window as any)._ludoAudioCtx as AudioContext,
+    master: (window as any)._ludoMasterBus as GainNode
+  };
 };
 
 function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.1) {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
+  const env = getAudioEnv();
+  if (!env) return;
+  const { ctx, master } = env;
   if (ctx.state === 'suspended') ctx.resume();
 
   const osc = ctx.createOscillator();
@@ -25,15 +50,15 @@ function playTone(freq: number, type: OscillatorType, duration: number, vol = 0.
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
   
   osc.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(master);
   
   osc.start();
   osc.stop(ctx.currentTime + duration);
 }
 
 export function playRollSound() {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
+  const env = getAudioEnv();
+  if (!env) return;
   for (let i = 0; i < 6; i++) {
     setTimeout(() => {
       // Increased volume significantly
@@ -48,8 +73,9 @@ export function playMoveSound() {
 }
 
 export function playCaptureSound() {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
+  const env = getAudioEnv();
+  if (!env) return;
+  const { ctx, master } = env;
   if (ctx.state === 'suspended') ctx.resume();
   
   const osc = ctx.createOscillator();
@@ -60,7 +86,7 @@ export function playCaptureSound() {
   gain.gain.setValueAtTime(0.8, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
   osc.connect(gain);
-  gain.connect(ctx.destination);
+  gain.connect(master);
   osc.start();
   osc.stop(ctx.currentTime + 0.3);
 }
