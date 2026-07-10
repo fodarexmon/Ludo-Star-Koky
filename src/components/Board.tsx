@@ -127,15 +127,6 @@ export const Board = memo(function Board({
       {/* background */}
       <rect x={0} y={0} width={SIZE} height={SIZE} fill={activeTheme.bg} rx={16} />
 
-      {/* Smoke particles */}
-      {smokeParticles.map(p => (
-        <g key={p.id} className="smoke-particle" style={{ pointerEvents: 'none' }}>
-          <circle cx={p.cx - 6} cy={p.cy} r={16} fill="#ef4444" opacity={0.6} filter="url(#smoke-blur)" />
-          <circle cx={p.cx + 6} cy={p.cy} r={16} fill="#06b6d4" opacity={0.6} filter="url(#smoke-blur)" />
-          <circle cx={p.cx} cy={p.cy - 4} r={12} fill="#ffffff" opacity={0.8} filter="url(#smoke-blur)" />
-        </g>
-      ))}
-
       {/* 4 colored bases (6x6 corners) */}
       {([
         ["red", 0, 0],
@@ -315,6 +306,15 @@ export const Board = memo(function Board({
         <polygon points={`${9*CELL},${9*CELL} ${6*CELL},${9*CELL} ${7.5*CELL},${7.5*CELL}`} fill={activeTheme.colors?.blue || COLOR_HEX.blue} />
         <polygon points={`${6*CELL},${9*CELL} ${6*CELL},${6*CELL} ${7.5*CELL},${7.5*CELL}`} fill={activeTheme.colors?.red || COLOR_HEX.red} />
       </g>
+
+      {/* Smoke particles */}
+      {smokeParticles.map(p => (
+        <g key={p.id} className="smoke-particle" style={{ pointerEvents: 'none' }}>
+          <circle cx={p.cx - 6} cy={p.cy} r={16} fill="#ef4444" opacity={0.6} filter="url(#smoke-blur)" />
+          <circle cx={p.cx + 6} cy={p.cy} r={16} fill="#06b6d4" opacity={0.6} filter="url(#smoke-blur)" />
+          <circle cx={p.cx} cy={p.cy - 4} r={12} fill="#ffffff" opacity={0.8} filter="url(#smoke-blur)" />
+        </g>
+      ))}
 
       {/* Tokens */}
       {state.players.map((p, seat) =>
