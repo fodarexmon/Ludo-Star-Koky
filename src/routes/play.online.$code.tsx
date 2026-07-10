@@ -261,9 +261,25 @@ function RoomPage() {
         nav({ to: "/play/online" });
         return;
       }
-      setRoom(r);
-
+      
       const pl = r.players || [];
+      
+      // Auto-join logic for invited players visiting the URL directly
+      if ((r.status === "lobby" || r.status === "quick_match_lobby") && !pl.find(p => p.user_id === userId) && pl.length < 4) {
+        const taken = new Set(pl.map((p) => p.seat));
+        const available = [0, 1, 2, 3].filter(s => !taken.has(s));
+        if (available.length > 0) {
+          const seat = available[Math.floor(Math.random() * available.length)];
+          const colors = ["red", "green", "yellow", "blue"];
+          const newPlayer = { user_id: userId, seat, color: colors[seat] };
+          
+          // Add to DB, snapshot will re-trigger with the new player list
+          await updateDoc(roomRef, { players: [...pl, newPlayer] });
+          return; 
+        }
+      }
+
+      setRoom(r);
       setPlayers(pl);
 
       // Only fetch profiles for player IDs we haven't fetched yet
@@ -282,7 +298,7 @@ function RoomPage() {
     });
 
     return () => unsub();
-  }, [userId, code]);
+  }, [userId, code, nav]);
 
   useEffect(() => {
     // Auto-start quick match if all players are ready
