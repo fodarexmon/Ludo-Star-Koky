@@ -126,6 +126,7 @@ function RoomPage() {
   const [disconnectedUsers, setDisconnectedUsers] = useState<Record<string, boolean>>({});
   const hasResignedRef = useRef(false);
   const timerBusyRef = useRef(false);
+  const podiumKickRef = useRef(false);
 
   const roomRefCurrent = useRef<RoomRow | null>(null);
   const playersRefCurrent = useRef<PlayerRow[]>([]);
@@ -394,6 +395,19 @@ function RoomPage() {
       return p;
     });
 
+    const activeHumans = nextPlayers.filter((p) => p.kind === "human" && !p.hasResigned);
+    if (activeHumans.length < 2) {
+      if (!podiumKickRef.current) {
+        podiumKickRef.current = true;
+        toast.error("لقد غادر اللاعب الآخر الغرفة! لا يمكن بدء مباراة جديدة. سيتم توجيهك للقائمة الرئيسية...", { duration: 5000 });
+        setTimeout(async () => {
+          await updateDoc(doc(db, "rooms", code), { status: "abandoned" });
+          nav({ to: "/play/online" });
+        }, 5000);
+      }
+      return;
+    }
+
     const init = createGame(nextPlayers);
     init.turnStartTime = getServerTime();
     init.resigned = nextPlayers
@@ -408,6 +422,25 @@ function RoomPage() {
       matchCount: (room.matchCount || 1) + 1,
     });
   }
+
+  // Auto-kick host from Podium if all other humans leave
+  useEffect(() => {
+    if (!room || !game || !isHost || podiumKickRef.current) return;
+    if (room.status === "finished" || gameOver(game)) {
+      const currentActiveIds = room.players?.map((p: any) => p.user_id) || [];
+      const humanPlayersInGame = game.players.filter(p => p.kind === "human" && p.userId);
+      const activeHumanPlayers = humanPlayersInGame.filter(p => p.userId && currentActiveIds.includes(p.userId) && !p.hasResigned);
+      
+      if (humanPlayersInGame.length > 1 && activeHumanPlayers.length < 2) {
+        podiumKickRef.current = true;
+        toast.error("لقد غادر اللاعب الآخر الغرفة! لا يمكن بدء مباراة جديدة. سيتم توجيهك للقائمة الرئيسية...", { duration: 5000 });
+        setTimeout(async () => {
+          await updateDoc(doc(db, "rooms", code), { status: "abandoned" });
+          nav({ to: "/play/online" });
+        }, 5000);
+      }
+    }
+  }, [room?.players, room?.status, game, isHost, code, nav]);
 
   async function leave() {
     if (!room || !userId) return;
