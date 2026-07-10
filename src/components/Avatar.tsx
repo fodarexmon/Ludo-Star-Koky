@@ -11,9 +11,9 @@ export function Avatar({ id, size = 40, ring, frameThemeId }: { id: string; size
       <div
         style={{
           width: size, height: size,
-          boxShadow: ring && !frameClass ? `0 0 0 3px ${ring}` : undefined,
+          boxShadow: ring ? `0 0 0 3px ${ring}` : undefined,
         }}
-        className="rounded-full overflow-hidden shrink-0"
+        className="rounded-full overflow-hidden shrink-0 z-10"
       >
         <img src={id} alt="Avatar" className="w-full h-full object-cover" />
       </div>
@@ -24,10 +24,10 @@ export function Avatar({ id, size = 40, ring, frameThemeId }: { id: string; size
       <div
         style={{
           width: size, height: size, background: a.bg,
-          boxShadow: ring && !frameClass ? `0 0 0 3px ${ring}` : undefined,
+          boxShadow: ring ? `0 0 0 3px ${ring}` : undefined,
           fontSize: size * 0.6,
         }}
-        className="grid place-items-center rounded-full select-none shrink-0"
+        className="grid place-items-center rounded-full select-none shrink-0 z-10"
       >
         <span>{a.emoji}</span>
       </div>
@@ -36,7 +36,7 @@ export function Avatar({ id, size = 40, ring, frameThemeId }: { id: string; size
 
   if (frameClass) {
     return (
-      <div className={`rounded-full shrink-0 flex items-center justify-center ${frameClass}`} style={{ width: size, height: size }}>
+      <div className={`relative rounded-full shrink-0 flex items-center justify-center ${frameClass}`} style={{ width: size + 20, height: size + 20 }}>
         {inner}
       </div>
     );
