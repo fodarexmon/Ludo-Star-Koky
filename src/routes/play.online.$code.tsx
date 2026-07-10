@@ -123,6 +123,7 @@ function RoomPage() {
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rtdbGame, setRtdbGame] = useState<GameState | null>(null);
+  const [disconnectedUsers, setDisconnectedUsers] = useState<Record<string, boolean>>({});
   const hasResignedRef = useRef(false);
   const timerBusyRef = useRef(false);
 
@@ -719,7 +720,7 @@ function RoomPage() {
 
     let cancelled = false;
     const unsubs: (() => void)[] = [];
-    const pendingTimers: ReturnType<typeof setTimeout>[] = [];
+    const pendingTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
     players.forEach((p) => {
       if (p.user_id === userId) return; // Don't listen to yourself
@@ -729,9 +730,18 @@ function RoomPage() {
       const unsub = onValue(pStatusRef, (snap) => {
         if (cancelled) return;
         const val = snap.val();
+        
         if (val && val.state === "offline") {
-          // Staggered delay: Host acts immediately, others wait in case host handles it
-          const delay = isHost ? 500 : 3000 + (mySeat * 2000);
+          // Show offline indicator
+          setDisconnectedUsers((prev) => ({ ...prev, [p.user_id]: true }));
+          
+          // Clear any existing timer just in case
+          if (pendingTimers.has(p.user_id)) {
+            clearTimeout(pendingTimers.get(p.user_id));
+          }
+
+          // 60-second grace period (staggered slightly to avoid race conditions between clients)
+          const delay = isHost ? 60000 : 62000 + (mySeat * 1000);
           
           const timer = setTimeout(async () => {
              if (cancelled) return; // Effect was cleaned up, game likely over
@@ -740,7 +750,7 @@ function RoomPage() {
                const latestGame = latestGameSnap.val();
                if (cancelled) return; // Double-check after async
                if (latestGame && !latestGame.resigned?.includes(p.seat) && !gameOver(latestGame)) {
-                  console.log(`Player ${p.seat} (${p.user_id}) disconnected. Forcing resign...`);
+                  console.log(`Player ${p.seat} (${p.user_id}) disconnected for 1 minute. Forcing resign...`);
                   
                   // Force resign locally and in RTDB immediately
                   await runRTDBTransaction(ref(rtdb, `rooms/${code}/state`), (current) => {
@@ -756,7 +766,15 @@ function RoomPage() {
                if (!cancelled) console.error("Disconnect kick failed:", e);
              }
           }, delay);
-          pendingTimers.push(timer);
+          pendingTimers.set(p.user_id, timer);
+          
+        } else if (val && val.state === "online") {
+          // Player came back -> remove indicator and cancel kick timer
+          setDisconnectedUsers((prev) => ({ ...prev, [p.user_id]: false }));
+          if (pendingTimers.has(p.user_id)) {
+            clearTimeout(pendingTimers.get(p.user_id));
+            pendingTimers.delete(p.user_id);
+          }
         }
       });
       unsubs.push(() => unsub());
@@ -1766,12 +1784,19 @@ function OnlineMatch({
                           ? "cursor-pointer transition-transform hover:scale-[1.02]"
                           : ""
                       }
+                      style={{ opacity: disconnectedUsers[p.userId] ? 0.5 : 1 }}
                     >
                       <PlayerCard
                         player={p}
                         active={i === displayGame.turn && !isGameOver}
                         finishedCount={finishedCount(i)}
                       />
+                      {disconnectedUsers[p.userId] && (
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-20 flex items-center gap-1.5 backdrop-blur-sm border border-white/10 whitespace-nowrap">
+                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                          غير متصل
+                        </div>
+                      )}
                       {displayGame.missedTurns?.[i] > 0 && (
                         <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-destructive/90 text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse z-10" title="مرات تفويت اللعب">
                           ⚠️ {displayGame.missedTurns[i]}/5
