@@ -202,6 +202,10 @@ export function resignPlayer(state: GameState, seat: number, now: number = Date.
 }
 
 export function disconnectPlayer(state: GameState, seat: number, now: number = Date.now()): GameState {
+  if (state.players.length <= 2) {
+    return resignPlayer(state, seat, now);
+  }
+
   const s: GameState = JSON.parse(JSON.stringify(state));
   if (!s.disconnected) s.disconnected = [];
   if (!s.disconnected.includes(seat)) s.disconnected.push(seat);
