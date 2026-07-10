@@ -334,7 +334,7 @@ export const Board = memo(function Board({
                 </g>
               )}
               {tokenShape === "star" && (
-                <g>
+                <g transform="scale(1.2)">
                   <path d={`M0,${-CELL*0.45} L${CELL*0.12},${-CELL*0.12} L${CELL*0.45},${-CELL*0.15} L${CELL*0.15},${CELL*0.1} L${CELL*0.25},${CELL*0.45} L0,${CELL*0.2} L${-CELL*0.25},${CELL*0.45} L${-CELL*0.15},${CELL*0.1} L${-CELL*0.45},${-CELL*0.15} L${-CELL*0.12},${-CELL*0.12} Z`} fill="#000" opacity={0.3} transform="translate(0, 3)" />
                   <path d={`M0,${-CELL*0.45} L${CELL*0.12},${-CELL*0.12} L${CELL*0.45},${-CELL*0.15} L${CELL*0.15},${CELL*0.1} L${CELL*0.25},${CELL*0.45} L0,${CELL*0.2} L${-CELL*0.25},${CELL*0.45} L${-CELL*0.15},${CELL*0.1} L${-CELL*0.45},${-CELL*0.15} L${-CELL*0.12},${-CELL*0.12} Z`} fill={COLOR_HEX[p.color]} stroke="#fff" strokeWidth={1} strokeLinejoin="round" />
                   
@@ -352,7 +352,7 @@ export const Board = memo(function Board({
                 </g>
               )}
               {tokenShape === "gem" && (
-                <g>
+                <g transform="scale(1.2)">
                   <path d={`M${-CELL*0.2},${-CELL*0.3} L${CELL*0.2},${-CELL*0.3} L${CELL*0.35},${-CELL*0.05} L0,${CELL*0.4} L${-CELL*0.35},${-CELL*0.05} Z`} fill={COLOR_HEX[p.color]} stroke="#fff" strokeWidth={1.5} strokeLinejoin="round" />
                   <path d={`M${-CELL*0.35},${-CELL*0.05} L${CELL*0.35},${-CELL*0.05}`} stroke="rgba(255,255,255,0.6)" strokeWidth={1} />
                   <path d={`M${-CELL*0.2},${-CELL*0.3} L${-CELL*0.15},${-CELL*0.05} L0,${CELL*0.4}`} stroke="rgba(255,255,255,0.6)" strokeWidth={1} />
@@ -362,7 +362,7 @@ export const Board = memo(function Board({
                 </g>
               )}
               {tokenShape === "pin" && (
-                <g>
+                <g transform="scale(1.2)">
                   <path d={`M0,${CELL*0.35} C${CELL*0.3},${CELL*0.05} ${CELL*0.35},${-CELL*0.35} 0,${-CELL*0.4} C${-CELL*0.35},${-CELL*0.35} ${-CELL*0.3},${CELL*0.05} 0,${CELL*0.35} Z`} fill="#f8fafc" stroke="#94a3b8" strokeWidth={2} strokeLinejoin="round" />
                   <circle cx={0} cy={-CELL*0.1} r={CELL * 0.18} fill={COLOR_HEX[p.color]} />
                   <circle cx={-CELL * 0.05} cy={-CELL * 0.15} r={CELL * 0.05} fill="#fff" opacity={0.8} />
