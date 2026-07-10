@@ -73,6 +73,7 @@ function FriendsPage() {
           // No new friends — just remove any who were deleted
           setFriends(prev => prev.filter(f => friendIds.includes(f.id)));
         }
+        setLoading(false);
       });
       
       const requestsRef = collection(db, `profiles/${user.uid}/friend_requests`);
@@ -370,11 +371,13 @@ function FriendsPage() {
             </div>
 
             {/* Pending Requests */}
-            {!loadingReqs && requests.length > 0 && (
-              <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden mb-6">
-                <div className="p-4 bg-primary/20 border-b border-white/5 font-bold text-lg text-primary flex items-center gap-2">
-                  <span>📬 طلبات الصداقة المعلقة ({requests.length})</span>
-                </div>
+            <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden mb-6">
+              <div className="p-4 bg-primary/20 border-b border-white/5 font-bold text-lg text-primary flex items-center gap-2">
+                <span>📬 طلبات الصداقة المعلقة ({requests.length})</span>
+              </div>
+              {loadingReqs ? (
+                <div className="p-8 text-center text-muted-foreground">جاري تحميل الطلبات...</div>
+              ) : requests.length > 0 ? (
                 <div className="divide-y divide-white/5">
                   {requests.map(req => (
                     <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
@@ -406,15 +409,19 @@ function FriendsPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="p-8 text-center text-muted-foreground bg-black/10">لا توجد طلبات صداقة معلقة.</div>
+              )}
+            </div>
 
             {/* Sent Requests */}
-            {!loadingSentReqs && sentRequests.length > 0 && (
-              <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden mb-6">
-                <div className="p-4 bg-white/5 border-b border-white/5 font-bold text-lg flex items-center gap-2">
-                  <span>📤 الطلبات المُرسلة ({sentRequests.length})</span>
-                </div>
+            <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden mb-6">
+              <div className="p-4 bg-white/5 border-b border-white/5 font-bold text-lg flex items-center gap-2">
+                <span>📤 الطلبات المُرسلة ({sentRequests.length})</span>
+              </div>
+              {loadingSentReqs ? (
+                <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
+              ) : sentRequests.length > 0 ? (
                 <div className="divide-y divide-white/5">
                   {sentRequests.map(req => (
                     <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
@@ -440,8 +447,10 @@ function FriendsPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="p-8 text-center text-muted-foreground bg-black/10">لم تقم بإرسال أي طلبات صداقة.</div>
+              )}
+            </div>
 
             {/* Friends List */}
             <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden">
