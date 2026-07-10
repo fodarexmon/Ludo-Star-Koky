@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/integrations/firebase/client";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, runTransaction } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, runTransaction, collection, query, where, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { loadProfile, saveProfile } from "@/lib/profile";
 import {
@@ -41,7 +41,7 @@ function OnlineLobby() {
 
   useEffect(() => {
     if (!user) return;
-    const { collection, query, where, onSnapshot } = require("firebase/firestore");
+
     const q = query(collection(db, "rooms"), where("status", "in", ["playing", "lobby", "quick_match_lobby"]), where("playerIds", "array-contains", user.id));
     
     const unsub = onSnapshot(q, async (snap: any) => {
