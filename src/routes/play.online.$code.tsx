@@ -217,16 +217,34 @@ function RoomPage() {
       
       // Auto-join logic for invited players visiting the URL directly
       if ((r.status === "lobby" || r.status === "quick_match_lobby") && !pl.find(p => p.user_id === userId) && pl.length < 4) {
-        const taken = new Set(pl.map((p) => p.seat));
-        const available = [0, 1, 2, 3].filter(s => !taken.has(s));
-        if (available.length > 0) {
-          const seat = available[Math.floor(Math.random() * available.length)];
-          const colors = ["red", "green", "yellow", "blue"];
-          const newPlayer = { user_id: userId, seat, color: colors[seat] };
+        try {
+          const joined = await runTransaction(db, async (t) => {
+            const snap = await t.get(roomRef);
+            if (!snap.exists()) return false;
+            const rData = snap.data();
+            const existing = rData.players || [];
+            if (existing.some((p: any) => p.user_id === userId)) return true;
+            if (existing.length >= 4) return false;
+            
+            const taken = new Set(existing.map((p: any) => p.seat));
+            const available = [0, 1, 2, 3].filter(s => !taken.has(s));
+            if (available.length === 0) return false;
+            
+            const seat = available[Math.floor(Math.random() * available.length)];
+            const colors = ["red", "green", "yellow", "blue"];
+            const newPlayer = { user_id: userId, seat, color: colors[seat] };
+            
+            const updateData: any = { players: [...existing, newPlayer] };
+            if (rData.status === "quick_match_lobby") {
+              updateData.playerCount = existing.length + 1;
+            }
+            t.update(roomRef, updateData);
+            return true;
+          });
           
-          // Add to DB, snapshot will re-trigger with the new player list
-          await updateDoc(roomRef, { players: [...pl, newPlayer] });
-          return; 
+          if (joined) return;
+        } catch (e) {
+          console.error("Auto-join transaction failed:", e);
         }
       }
 

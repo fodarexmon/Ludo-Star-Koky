@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/integrations/firebase/client";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, runTransaction } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { loadProfile, saveProfile } from "@/lib/profile";
 
@@ -113,33 +113,30 @@ function OnlineLobby() {
 
       await ensureProfile(user.id);
       const roomRef = doc(db, "rooms", c);
-      const roomDoc = await getDoc(roomRef);
-      
-      if (!roomDoc.exists()) throw new Error("Room not found");
-      const room = roomDoc.data();
-      const existing = room.players || [];
-      const alreadyInRoom = existing.some((r: any) => r.user_id === user.id);
-      
-      // Resigned players are removed from players or flagged in game.resigned, but let's check game state if it exists
-      if (room.state?.resigned?.includes(existing.find((r: any) => r.user_id === user.id)?.seat)) {
-        throw new Error("لقد انسحبت من هذه المباراة ولا يمكنك العودة إليها.");
-      }
+      await runTransaction(db, async (t) => {
+        const snap = await t.get(roomRef);
+        if (!snap.exists()) throw new Error("Room not found");
+        const room = snap.data();
+        const existing = room.players || [];
+        const alreadyInRoom = existing.some((r: any) => r.user_id === user.id);
+        
+        if (room.state?.resigned?.includes(existing.find((r: any) => r.user_id === user.id)?.seat)) {
+          throw new Error("لقد انسحبت من هذه المباراة ولا يمكنك العودة إليها.");
+        }
 
-      if (!alreadyInRoom && room.status !== "lobby") throw new Error("Game already started");
-      
-      if (alreadyInRoom) {
-        nav({ to: "/play/online/$code", params: { code: c } }); return;
-      }
-      
-      if (existing.length >= 4) throw new Error("Room is full");
-      
-      const taken = new Set(existing.map((r: any) => r.seat));
-      const available = [0, 1, 2, 3].filter(s => !taken.has(s));
-      const seat = available[Math.floor(Math.random() * available.length)];
-      const colors = ["red", "green", "yellow", "blue"];
-      
-      await updateDoc(roomRef, {
-        players: arrayUnion({ user_id: user.id, seat, color: colors[seat] })
+        if (!alreadyInRoom && room.status !== "lobby") throw new Error("Game already started");
+        if (alreadyInRoom) return true;
+        if (existing.length >= 4) throw new Error("Room is full");
+        
+        const taken = new Set(existing.map((r: any) => r.seat));
+        const available = [0, 1, 2, 3].filter(s => !taken.has(s));
+        const seat = available[Math.floor(Math.random() * available.length)];
+        const colors = ["red", "green", "yellow", "blue"];
+        
+        t.update(roomRef, {
+          players: [...existing, { user_id: user.id, seat, color: colors[seat] }]
+        });
+        return true;
       });
       
       nav({ to: "/play/online/$code", params: { code: c } });
@@ -208,20 +205,37 @@ function OnlineLobby() {
       if (result) {
         const roomDoc = result;
         const room = roomDoc.data();
-        const taken = new Set(room.players.map((r: any) => r.seat));
-        const available = [0, 1, 2, 3].filter(s => !taken.has(s));
-        const seat = available[Math.floor(Math.random() * available.length)];
-        const colors = ["red", "green", "yellow", "blue"];
-
         try {
-          await updateDoc(roomDoc.ref, {
-            players: arrayUnion({ user_id: user.id, seat, color: colors[seat] }),
-            playerCount: increment(1)
+          const joined = await runTransaction(db, async (t) => {
+            const snap = await t.get(roomDoc.ref);
+            if (!snap.exists()) return false;
+            const rData = snap.data();
+            if (rData.status !== "quick_match_lobby") return false;
+            
+            const existing = rData.players || [];
+            if (existing.some((r: any) => r.user_id === user.id)) return true;
+            if (existing.length >= 4) return false;
+            
+            const taken = new Set(existing.map((r: any) => r.seat));
+            const available = [0, 1, 2, 3].filter(s => !taken.has(s));
+            if (available.length === 0) return false;
+            
+            const seat = available[Math.floor(Math.random() * available.length)];
+            const colors = ["red", "green", "yellow", "blue"];
+            
+            t.update(roomDoc.ref, {
+              players: [...existing, { user_id: user.id, seat, color: colors[seat] }],
+              playerCount: existing.length + 1
+            });
+            return true;
           });
-          nav({ to: "/play/online/$code", params: { code: room.code } });
-          return;
+
+          if (joined) {
+            nav({ to: "/play/online/$code", params: { code: room.code } });
+            return;
+          }
         } catch (err) {
-          console.error("Error joining quick match room:", err);
+          console.error("Error joining quick match room via transaction:", err);
           // If it fails, fallback to creating a new one below
         }
       }
