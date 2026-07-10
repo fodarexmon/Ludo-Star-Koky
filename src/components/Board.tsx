@@ -178,6 +178,30 @@ export const Board = memo(function Board({
                     </foreignObject>
                   );
                 })()}
+
+                {state.disconnected?.includes(player.seat) && (
+                  <foreignObject
+                    x={(x + 1) * CELL}
+                    y={(y + 1.5) * CELL}
+                    width={4 * CELL}
+                    height={3 * CELL}
+                    className="pointer-events-none"
+                  >
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div 
+                        className="border-[3px] border-red-600 text-red-600 font-black text-center uppercase tracking-wider rounded-lg shadow-sm bg-white/90 backdrop-blur-sm"
+                        style={{
+                          transform: "rotate(-15deg)",
+                          fontSize: CELL * 0.45,
+                          padding: `${CELL * 0.1}px ${CELL * 0.2}px`,
+                          lineHeight: 1.1
+                        }}
+                      >
+                        منقطع<br/>Disconnected
+                      </div>
+                    </div>
+                  </foreignObject>
+                )}
               </>
             )}
           </g>

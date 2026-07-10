@@ -359,8 +359,20 @@ function RoomPage() {
   async function nextMatch() {
     if (!room || !isHost || !game) return;
 
-    // Mark players who left the room as resigned in the next match
-    const currentActiveIds = room.players?.map((p: any) => p.user_id) || [];
+    // Remove disconnected players completely from the room
+    const disconnectedSeats = game.disconnected || [];
+    const remainingPlayers = (room.players || []).filter((p: any) => !disconnectedSeats.includes(p.seat));
+    
+    if (remainingPlayers.length !== room.players?.length) {
+      const updates: any = { players: remainingPlayers };
+      if (room.isQuickMatch) {
+        updates.playerCount = remainingPlayers.length;
+      }
+      await updateDoc(doc(db, "rooms", code), updates);
+    }
+
+    // Mark players who left the room (or were disconnected) as resigned in the next match
+    const currentActiveIds = remainingPlayers.map((p: any) => p.user_id) || [];
     const nextPlayers = game.players.map((p) => {
       if (p.kind === "human" && p.userId && !currentActiveIds.includes(p.userId)) {
         return { ...p, hasResigned: true };
@@ -567,7 +579,7 @@ function RoomPage() {
       status = "finished";
       const board = [...(next.winners || [])];
       next.players.forEach((p, i) => {
-        if (!board.includes(i) && !p.hasResigned) board.push(i);
+        if (!board.includes(i) && !p.hasResigned && !next.disconnected?.includes(i)) board.push(i);
       });
       const reversedResigned = [...(next.resigned || [])].reverse();
       reversedResigned.forEach((i) => {
