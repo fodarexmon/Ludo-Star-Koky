@@ -310,9 +310,9 @@ export const Board = memo(function Board({
       {/* Smoke particles */}
       {smokeParticles.map(p => (
         <g key={p.id} className="smoke-particle" style={{ pointerEvents: 'none' }}>
-          <circle cx={p.cx - 6} cy={p.cy} r={18} fill="#ff0000" opacity={0.9} filter="url(#smoke-blur)" />
-          <circle cx={p.cx + 6} cy={p.cy} r={18} fill="#00ffff" opacity={0.9} filter="url(#smoke-blur)" />
-          <circle cx={p.cx} cy={p.cy - 4} r={14} fill="#ffffff" opacity={1} filter="url(#smoke-blur)" />
+          <circle cx={p.cx - 6} cy={p.cy} r={18} fill="#ff0000" opacity={0.7} filter="url(#smoke-blur)" />
+          <circle cx={p.cx + 6} cy={p.cy} r={18} fill="#00ffff" opacity={0.7} filter="url(#smoke-blur)" />
+          <circle cx={p.cx} cy={p.cy - 4} r={14} fill="#ffffff" opacity={0.9} filter="url(#smoke-blur)" />
         </g>
       ))}
 

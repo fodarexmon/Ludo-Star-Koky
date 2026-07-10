@@ -8,6 +8,8 @@
 }
 .smoke-particle {
   animation: smokeFade 1.2s ease-out forwards;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 @keyframes spin-slow {
