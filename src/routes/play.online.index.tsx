@@ -4,6 +4,19 @@ import { auth, db } from "@/integrations/firebase/client";
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, runTransaction } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { loadProfile, saveProfile } from "@/lib/profile";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { resignPlayer } from "@/game/engine";
+import { ref, get, runTransaction as runRTDBTransaction } from "firebase/database";
+import { rtdb } from "@/integrations/firebase/client";
 
 export const Route = createFileRoute("/play/online/")({
   head: () => ({ meta: [{ title: "Online Ludo — Create or Join a Room" }] }),
@@ -23,6 +36,67 @@ function OnlineLobby() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"menu" | "rooms">("menu");
+
+  const [activeRoom, setActiveRoom] = useState<{ code: string; seat: number } | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const { collection, query, where, onSnapshot } = require("firebase/firestore");
+    const q = query(collection(db, "rooms"), where("status", "in", ["playing", "lobby", "quick_match_lobby"]), where("playerIds", "array-contains", user.id));
+    
+    const unsub = onSnapshot(q, async (snap: any) => {
+      let foundRoom = null;
+      for (const d of snap.docs) {
+        const room = d.data();
+        const pInfo = room.players?.find((p: any) => p.user_id === user.id);
+        if (pInfo) {
+          // If the room is playing, check RTDB state for disconnected
+          if (room.status === "playing") {
+             const stateSnap = await get(ref(rtdb, `rooms/${room.code}/state`));
+             const gameState = stateSnap.val();
+             if (gameState && !gameState.resigned?.includes(pInfo.seat) && gameState.disconnected?.includes(pInfo.seat)) {
+                foundRoom = { code: room.code, seat: pInfo.seat };
+                break;
+             }
+          }
+        }
+      }
+      setActiveRoom(foundRoom);
+    });
+    return () => unsub();
+  }, [user]);
+
+  async function handleRejectActiveRoom() {
+    if (!activeRoom) return;
+    setBusy(true);
+    try {
+      await runRTDBTransaction(ref(rtdb, `rooms/${activeRoom.code}/state`), (current) => {
+         if (!current) return undefined;
+         return resignPlayer(current, activeRoom.seat);
+      });
+      // Apply manual ban
+      const pDoc = await getDoc(doc(db, "profiles", user!.id));
+      if (pDoc.exists()) {
+        const now = new Date();
+        const today = now.toISOString().split("T")[0];
+        let newBan = { until: Date.now() + 15 * 60 * 1000, count: 1, lastBanDay: today };
+        const oldBans = pDoc.data().bans;
+        if (oldBans && oldBans.lastBanDay === today) {
+          const newCount = oldBans.count + 1;
+          if (newCount >= 3) {
+            newBan = { until: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime(), count: newCount, lastBanDay: today };
+          } else {
+            newBan.count = newCount;
+          }
+        }
+        await updateDoc(doc(db, "profiles", user!.id), { bans: newBan });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setActiveRoom(null);
+    setBusy(false);
+  }
 
   useEffect(() => {
     setNewRoomCode(genCode());
@@ -83,6 +157,7 @@ function OnlineLobby() {
         status: "lobby",
         state: {},
         players: [{ user_id: user.id, seat: randomSeat, color: colors[randomSeat] }],
+        playerIds: [user.id],
         matchCount: 1,
         scores: {}
       });
@@ -134,7 +209,8 @@ function OnlineLobby() {
         const colors = ["red", "green", "yellow", "blue"];
         
         t.update(roomRef, {
-          players: [...existing, { user_id: user.id, seat, color: colors[seat] }]
+          players: [...existing, { user_id: user.id, seat, color: colors[seat] }],
+          playerIds: Array.from(new Set([...(room.playerIds || []), user.id]))
         });
         return true;
       });
@@ -225,7 +301,8 @@ function OnlineLobby() {
             
             t.update(roomDoc.ref, {
               players: [...existing, { user_id: user.id, seat, color: colors[seat] }],
-              playerCount: existing.length + 1
+              playerCount: existing.length + 1,
+              playerIds: Array.from(new Set([...(rData.playerIds || []), user.id]))
             });
             return true;
           });
@@ -255,6 +332,7 @@ function OnlineLobby() {
         playerCount: 1,
         state: {},
         players: [{ user_id: user.id, seat: randomSeat, color: colors[randomSeat] }],
+        playerIds: [user.id],
         readyPlayers: [],
         matchCount: 1,
         scores: {}
@@ -270,6 +348,33 @@ function OnlineLobby() {
 
   return (
     <div className="min-h-screen p-6 flex flex-col relative overflow-hidden">
+      {/* Active Room Dialog */}
+      <AlertDialog open={!!activeRoom}>
+        <AlertDialogContent className="bg-neutral-800 border-neutral-700 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">مباراة جارية!</AlertDialogTitle>
+            <AlertDialogDescription className="text-right text-neutral-300">
+              لقد انقطع اتصالك عن مباراة لا تزال جارية. هل ترغب في العودة واستكمال اللعب؟ (رفضك للعودة سيؤدي لتطبيق حظر مؤقت).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse space-x-2 space-x-reverse">
+            <AlertDialogAction 
+              onClick={() => nav({ to: "/play/online/$code", params: { code: activeRoom!.code } })}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              العودة للمباراة
+            </AlertDialogAction>
+            <AlertDialogCancel 
+              onClick={handleRejectActiveRoom}
+              className="bg-red-600 hover:bg-red-700 text-white border-0"
+              disabled={busy}
+            >
+              الانسحاب (رفض العودة)
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Decorative Background Blur */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/20 blur-[120px] rounded-full pointer-events-none" />

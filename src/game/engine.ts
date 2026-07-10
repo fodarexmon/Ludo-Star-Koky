@@ -165,14 +165,14 @@ export function nextActiveSeat(s: GameState, from: number): number {
   const n = s.players.length;
   for (let i = 1; i <= n; i++) {
     const seat = (from + i) % n;
-    if (!s.tokens[seat]?.every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(seat)) return seat;
+    if (!s.tokens[seat]?.every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(seat) && !s.disconnected?.includes(seat)) return seat;
   }
   return from;
 }
 
 export function gameOver(s: GameState): boolean {
   if (!s || !s.players || !s.tokens) return false;
-  const active = s.players.filter((_, i) => !s.tokens[i]?.every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(i));
+  const active = s.players.filter((_, i) => !s.tokens[i]?.every((x) => x === FINISHED || x === -1) && !s.resigned?.includes(i) && !s.disconnected?.includes(i));
   return active.length <= 1;
 }
 
@@ -187,11 +187,38 @@ export function resignPlayer(state: GameState, seat: number, now: number = Date.
     s.tokens[seat] = [-1, -1, -1, -1];
   }
   
+  // Also remove from disconnected if present
+  if (s.disconnected) {
+    s.disconnected = s.disconnected.filter((x) => x !== seat);
+  }
+  
   if (s.turn === seat) {
     s.dice = null;
     s.awaitingMove = false;
     s.turn = nextActiveSeat(s, seat);
     s.turnStartTime = now;
+  }
+  return s;
+}
+
+export function disconnectPlayer(state: GameState, seat: number, now: number = Date.now()): GameState {
+  const s: GameState = JSON.parse(JSON.stringify(state));
+  if (!s.disconnected) s.disconnected = [];
+  if (!s.disconnected.includes(seat)) s.disconnected.push(seat);
+  
+  if (s.turn === seat) {
+    s.dice = null;
+    s.awaitingMove = false;
+    s.turn = nextActiveSeat(s, seat);
+    s.turnStartTime = now;
+  }
+  return s;
+}
+
+export function reconnectPlayer(state: GameState, seat: number): GameState {
+  const s: GameState = JSON.parse(JSON.stringify(state));
+  if (s.disconnected) {
+    s.disconnected = s.disconnected.filter((x) => x !== seat);
   }
   return s;
 }

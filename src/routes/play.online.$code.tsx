@@ -34,6 +34,8 @@ import {
   gameOver,
   legalMoves,
   resignPlayer,
+  disconnectPlayer,
+  reconnectPlayer,
 } from "@/game/engine";
 import { chooseMove } from "@/game/ai";
 import type { GameState, Player } from "@/game/types";
@@ -234,7 +236,10 @@ function RoomPage() {
             const colors = ["red", "green", "yellow", "blue"];
             const newPlayer = { user_id: userId, seat, color: colors[seat] };
             
-            const updateData: any = { players: [...existing, newPlayer] };
+            const updateData: any = { 
+              players: [...existing, newPlayer],
+              playerIds: Array.from(new Set([...(rData.playerIds || []), userId]))
+            };
             if (rData.status === "quick_match_lobby") {
               updateData.playerCount = existing.length + 1;
             }
@@ -712,8 +717,8 @@ function RoomPage() {
           finalState.missedTurns[game.turn] = currentMissed;
 
           if (currentMissed >= 5) {
-            console.log(`Player ${game.turn} missed 5 turns. Auto-kicking...`);
-            finalState = resignPlayer(finalState, game.turn, getServerTime());
+            console.log(`Player ${game.turn} missed 5 turns. Auto-disconnecting...`);
+            finalState = disconnectPlayer(finalState, game.turn, getServerTime());
             await updateDoc(doc(db, "rooms", code), {
               [`reactions.${game.turn}`]: { emoji: "💤", sender: game.turn, timestamp: getServerTime() },
             });
@@ -767,12 +772,12 @@ function RoomPage() {
                const latestGame = latestGameSnap.val();
                if (cancelled) return; // Double-check after async
                if (latestGame && !latestGame.resigned?.includes(p.seat) && !gameOver(latestGame)) {
-                  console.log(`Player ${p.seat} (${p.user_id}) disconnected for 1 minute. Forcing resign...`);
+                  console.log(`Player ${p.seat} (${p.user_id}) disconnected for 1 minute. Auto-disconnecting...`);
                   
-                  // Force resign locally and in RTDB immediately
+                  // Force disconnect locally and in RTDB immediately
                   const result = await runRTDBTransaction(ref(rtdb, `rooms/${code}/state`), (current) => {
-                     if (!current || gameOver(current) || current.resigned?.includes(p.seat)) return undefined;
-                     return resignPlayer(current, p.seat);
+                     if (!current || gameOver(current) || current.resigned?.includes(p.seat) || current.disconnected?.includes(p.seat)) return undefined;
+                     return disconnectPlayer(current, p.seat);
                   });
 
                   if (result.committed) {
@@ -824,6 +829,26 @@ function RoomPage() {
           if (pendingTimers.has(p.user_id)) {
             clearTimeout(pendingTimers.get(p.user_id));
             pendingTimers.delete(p.user_id);
+          }
+          
+          // If they were disconnected (auto-kicked), reconnect them
+          if (game.disconnected?.includes(p.seat)) {
+            runRTDBTransaction(ref(rtdb, `rooms/${code}/state`), (current) => {
+               if (!current || !current.disconnected?.includes(p.seat)) return undefined;
+               return reconnectPlayer(current, p.seat);
+            }).then(async (result) => {
+               if (result.committed) {
+                  // Undo their ban
+                  try {
+                    const pDoc = await getDoc(doc(db, "profiles", p.user_id));
+                    if (pDoc.exists() && pDoc.data().bans) {
+                      const bans = pDoc.data().bans;
+                      bans.until = 0; // Remove the time restriction
+                      await updateDoc(doc(db, "profiles", p.user_id), { bans });
+                    }
+                  } catch(e) {}
+               }
+            });
           }
         }
       });

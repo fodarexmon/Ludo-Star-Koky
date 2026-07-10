@@ -24,6 +24,7 @@ export interface GameState {
   awaitingMove: boolean;      // dice rolled, waiting for token move
   winners: number[];          // seat indexes that finished normally, in finish order
   resigned: number[];         // seat indexes that resigned
+  disconnected?: number[];    // seat indexes that disconnected (auto-kicked) but can return
   lastMove?: { seat: number; token: number; from: number; to: number; capture?: { seat: number; token: number }[]; timestamp?: number } | null;
   turnStartTime: number;      // timestamp when the current turn or action phase started
   stats?: { kills: Record<number, number>; deaths: Record<number, number> };
