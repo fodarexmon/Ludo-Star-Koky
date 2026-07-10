@@ -220,6 +220,18 @@ function RoomPage() {
       // Auto-join logic for invited players visiting the URL directly
       if ((r.status === "lobby" || r.status === "quick_match_lobby") && !pl.find(p => p.user_id === userId) && pl.length < 4) {
         try {
+          // Check for ban first
+          const pDoc = await getDoc(doc(db, "profiles", userId));
+          if (pDoc.exists()) {
+            const pd = pDoc.data();
+            if (pd.bans && pd.bans.until > Date.now()) {
+              const minLeft = Math.ceil((pd.bans.until - Date.now()) / 60000);
+              window.alert(`أنت محظور مؤقتاً من اللعب الأونلاين. حاول مرة أخرى بعد ${minLeft} دقيقة.`);
+              nav({ to: "/play/online" });
+              return;
+            }
+          }
+
           const joined = await runTransaction(db, async (t) => {
             const snap = await t.get(roomRef);
             if (!snap.exists()) return false;
