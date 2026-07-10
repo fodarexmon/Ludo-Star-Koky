@@ -68,7 +68,8 @@ export const Board = memo(function Board({
   useEffect(() => {
     const newParticles: { id: string, cx: number, cy: number }[] = [];
     
-    state.tokens.forEach((playerTokens, seat) => {
+    Object.entries(state.tokens).forEach(([seatStr, playerTokens]) => {
+      const seat = parseInt(seatStr);
       const trailType = trailClasses[seat];
       // Since trailClasses[seat] returns the ID or css class?
       // Wait, getTrailClass returns cssClass. We need to check if the item id is trail_glow.
@@ -78,7 +79,7 @@ export const Board = memo(function Board({
       
       if (currentThemeId === 'trail_glow') {
         const pColor = state.players[seat].color;
-        playerTokens.forEach((pos, ti) => {
+        playerTokens.forEach((pos: number, ti: number) => {
           const key = `${seat}-${ti}`;
           const oldPos = prevPositions.current[key];
           
