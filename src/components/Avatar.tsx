@@ -1,10 +1,11 @@
+import React from "react";
 import { AVATARS, getAvatar } from "@/data/avatars";
 import { STORE_ITEMS } from "@/data/store";
 
 export function Avatar({ id, size = 40, ring, frameThemeId }: { id: string; size?: number; ring?: string; frameThemeId?: string }) {
   const frameClass = STORE_ITEMS.find((i) => i.id === frameThemeId)?.frameTheme?.cssClass || "";
   
-  let inner: JSX.Element;
+  let inner: React.ReactNode;
   
   if (id && id.startsWith("data:image/")) {
     inner = (
