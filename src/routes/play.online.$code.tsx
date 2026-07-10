@@ -165,56 +165,6 @@ function RoomPage() {
         }
         
         updateDoc(doc(db, "rooms", code), updates).catch(() => {});
-      } else if (r.status === "playing") {
-        const mySeat = pl.find((p) => p.user_id === uid)?.seat ?? -1;
-        const game = rtdbGameRefCurrent.current || (r.state as GameState);
-        
-        if (game && mySeat !== -1 && !game.resigned?.includes(mySeat) && !game.winners?.includes(mySeat)) {
-          if (hasResignedRef.current) return;
-          hasResignedRef.current = true;
-
-          const next = resignPlayer(game, mySeat);
-          
-          if (rtdbGameRefCurrent.current) {
-             set(ref(rtdb, `rooms/${code}/state`), next).catch(() => {});
-          } else {
-             updateDoc(doc(db, "rooms", code), { state: next }).catch(() => {});
-          }
-
-          updateDoc(doc(db, "rooms", code), {
-            [`reactions.${mySeat}`]: { emoji: "🏳️", sender: mySeat, timestamp: getServerTime() },
-          }).catch(() => {});
-
-          // Apply ban for leaving mid-game
-          getDoc(doc(db, "profiles", uid))
-            .then((pDoc) => {
-              if (pDoc.exists()) {
-                const now = new Date();
-                const today = now.toISOString().split("T")[0];
-                let newBan = { until: getServerTime() + 15 * 60 * 1000, count: 1, lastBanDay: today };
-                const oldBans = pDoc.data().bans;
-                if (oldBans && oldBans.lastBanDay === today) {
-                  const newCount = oldBans.count + 1;
-                  if (newCount >= 3) {
-                    const eod = new Date(
-                      now.getFullYear(),
-                      now.getMonth(),
-                      now.getDate(),
-                      23,
-                      59,
-                      59,
-                      999,
-                    ).getTime();
-                    newBan = { until: eod, count: newCount, lastBanDay: today };
-                  } else {
-                    newBan.count = newCount;
-                  }
-                }
-                updateDoc(doc(db, "profiles", uid), { bans: newBan }).catch(() => {});
-              }
-            })
-            .catch(() => {});
-        }
       }
     };
 
@@ -802,14 +752,47 @@ function RoomPage() {
                   console.log(`Player ${p.seat} (${p.user_id}) disconnected for 1 minute. Forcing resign...`);
                   
                   // Force resign locally and in RTDB immediately
-                  await runRTDBTransaction(ref(rtdb, `rooms/${code}/state`), (current) => {
+                  const result = await runRTDBTransaction(ref(rtdb, `rooms/${code}/state`), (current) => {
                      if (!current || gameOver(current) || current.resigned?.includes(p.seat)) return undefined;
                      return resignPlayer(current, p.seat);
                   });
 
-                  await updateDoc(doc(db, "rooms", code), {
-                    [`reactions.${p.seat}`]: { emoji: "🔌", sender: p.seat, timestamp: getServerTime() },
-                  });
+                  if (result.committed) {
+                    await updateDoc(doc(db, "rooms", code), {
+                      [`reactions.${p.seat}`]: { emoji: "🔌", sender: p.seat, timestamp: getServerTime() },
+                    });
+
+                    // Apply ban for leaving mid-game
+                    try {
+                      const pDoc = await getDoc(doc(db, "profiles", p.user_id));
+                      if (pDoc.exists()) {
+                        const now = new Date();
+                        const today = now.toISOString().split("T")[0];
+                        let newBan = { until: getServerTime() + 15 * 60 * 1000, count: 1, lastBanDay: today };
+                        const oldBans = pDoc.data().bans;
+                        if (oldBans && oldBans.lastBanDay === today) {
+                          const newCount = oldBans.count + 1;
+                          if (newCount >= 3) {
+                            const eod = new Date(
+                              now.getFullYear(),
+                              now.getMonth(),
+                              now.getDate(),
+                              23,
+                              59,
+                              59,
+                              999,
+                            ).getTime();
+                            newBan = { until: eod, count: newCount, lastBanDay: today };
+                          } else {
+                            newBan.count = newCount;
+                          }
+                        }
+                        await updateDoc(doc(db, "profiles", p.user_id), { bans: newBan });
+                      }
+                    } catch (err) {
+                      console.error("Ban update failed", err);
+                    }
+                  }
                }
              } catch (e) {
                if (!cancelled) console.error("Disconnect kick failed:", e);
