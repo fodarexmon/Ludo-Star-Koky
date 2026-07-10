@@ -36,15 +36,15 @@ export function playRollSound() {
   if (!ctx) return;
   for (let i = 0; i < 6; i++) {
     setTimeout(() => {
-      // Increased volume from 0.2 to 0.4 for a louder clatter
-      playTone(300 + Math.random() * 400, 'triangle', 0.06, 0.4);
+      // Increased volume significantly
+      playTone(300 + Math.random() * 400, 'triangle', 0.06, 1.0);
     }, i * 35);
   }
 }
 
 export function playMoveSound() {
   // Increased volume, shorter duration, and sharper wave for a clear "tap" sound
-  playTone(600, 'triangle', 0.08, 0.5);
+  playTone(600, 'triangle', 0.08, 1.2);
 }
 
 export function playCaptureSound() {
@@ -57,7 +57,7 @@ export function playCaptureSound() {
   osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(400, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
-  gain.gain.setValueAtTime(0.2, ctx.currentTime);
+  gain.gain.setValueAtTime(0.8, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
   osc.connect(gain);
   gain.connect(ctx.destination);
@@ -66,9 +66,9 @@ export function playCaptureSound() {
 }
 
 export function playFinishSound() {
-  playTone(523.25, 'sine', 0.3, 0.1); // C5
-  setTimeout(() => playTone(659.25, 'sine', 0.3, 0.1), 100); // E5
-  setTimeout(() => playTone(783.99, 'sine', 0.4, 0.1), 200); // G5
+  playTone(523.25, 'sine', 0.3, 0.6); // C5
+  setTimeout(() => playTone(659.25, 'sine', 0.3, 0.6), 100); // E5
+  setTimeout(() => playTone(783.99, 'sine', 0.4, 0.6), 200); // G5
 }
 
 export function playWinSound() {
@@ -78,6 +78,6 @@ export function playWinSound() {
 
 export function playSafeSound() {
   // A pleasant "ding" sound for reaching a safe star
-  playTone(880, 'sine', 0.1, 0.2); // A5
-  setTimeout(() => playTone(1108.73, 'sine', 0.2, 0.2), 100); // C#6
+  playTone(880, 'sine', 0.1, 0.8); // A5
+  setTimeout(() => playTone(1108.73, 'sine', 0.2, 0.8), 100); // C#6
 }
