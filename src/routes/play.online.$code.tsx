@@ -837,6 +837,77 @@ function RoomPage() {
     };
   }, [game, room, isHost, mySeat, code, players, userId]);
 
+  // Lobby Presence Listener for Ghost Players
+  useEffect(() => {
+    if (!room || (room.status !== "lobby" && room.status !== "quick_match_lobby") || !userId) return;
+
+    let cancelled = false;
+    const unsubs: (() => void)[] = [];
+    const pendingTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+    players.forEach((p) => {
+      if (p.user_id === userId) return; // Don't listen to yourself
+
+      const pStatusRef = ref(rtdb, `/status/${p.user_id}`);
+      const unsub = onValue(pStatusRef, (snap) => {
+        if (cancelled) return;
+        const val = snap.val();
+        
+        if (val && val.state === "offline") {
+          if (pendingTimers.has(p.user_id)) clearTimeout(pendingTimers.get(p.user_id));
+          
+          const delay = isHost ? 4000 : 6000 + (mySeat * 1000);
+          const timer = setTimeout(async () => {
+             if (cancelled) return;
+             try {
+                await runTransaction(db, async (t) => {
+                   const roomSnap = await t.get(doc(db, "rooms", code));
+                   if (!roomSnap.exists()) return;
+                   const rData = roomSnap.data();
+                   if (rData.status !== "lobby" && rData.status !== "quick_match_lobby") return;
+                   
+                   const existingPlayers = rData.players || [];
+                   const newPlayers = existingPlayers.filter((rp: any) => rp.user_id !== p.user_id);
+                   
+                   if (newPlayers.length === existingPlayers.length) return; // Already removed
+                   
+                   const updates: any = { players: newPlayers };
+                   if (rData.isQuickMatch || rData.status === "quick_match_lobby") {
+                     updates.playerCount = newPlayers.length;
+                     if (rData.readyPlayers?.includes(p.user_id)) {
+                       updates.readyPlayers = rData.readyPlayers.filter((id: string) => id !== p.user_id);
+                     }
+                   }
+                   
+                   if (rData.host_id === p.user_id) {
+                     updates.status = "abandoned";
+                   }
+                   
+                   t.update(doc(db, "rooms", code), updates);
+                });
+             } catch (e) {
+                if (!cancelled) console.error("Lobby ghost kick failed:", e);
+             }
+          }, delay);
+          pendingTimers.set(p.user_id, timer);
+        } else if (val && val.state === "online") {
+          if (pendingTimers.has(p.user_id)) {
+            clearTimeout(pendingTimers.get(p.user_id));
+            pendingTimers.delete(p.user_id);
+          }
+        }
+      });
+      unsubs.push(() => unsub());
+    });
+
+    return () => {
+      cancelled = true;
+      unsubs.forEach((fn) => fn());
+      pendingTimers.forEach((t) => clearTimeout(t));
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.status, isHost, mySeat, code, players.length, userId]);
+
   function copyCode() {
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(code);
