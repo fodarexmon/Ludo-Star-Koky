@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, setDoc, getDoc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged } from "firebase/auth";
 import { Avatar } from "@/components/Avatar";
@@ -20,6 +20,8 @@ function FriendsPage() {
   const [addCode, setAddCode] = useState("");
   const [addMsg, setAddMsg] = useState<{ text: string, type: "err" | "success" } | null>(null);
   const [adding, setAdding] = useState(false);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loadingReqs, setLoadingReqs] = useState(true);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
@@ -69,10 +71,44 @@ function FriendsPage() {
           // No new friends — just remove any who were deleted
           setFriends(prev => prev.filter(f => friendIds.includes(f.id)));
         }
-        setLoading(false);
       });
       
-      return () => unsub();
+      const requestsRef = collection(db, `profiles/${user.uid}/friend_requests`);
+      const knownReqIds: string[] = [];
+      const unsubReqs = onSnapshot(requestsRef, async (snap) => {
+        const reqIds = snap.docs.map(d => d.id);
+        if (reqIds.length === 0) {
+          setRequests([]);
+          setLoadingReqs(false);
+          return;
+        }
+        
+        // Fetch profiles for requests
+        const newIds = reqIds.filter(id => !knownReqIds.includes(id));
+        if (newIds.length > 0) {
+          knownReqIds.push(...newIds);
+          const chunks = [];
+          for (let i = 0; i < newIds.length; i += 10) {
+            chunks.push(newIds.slice(i, i + 10));
+          }
+          let fetched: any[] = [];
+          for (const chunk of chunks) {
+            const q = query(collection(db, "profiles"), where("id", "in", chunk));
+            const pSnap = await getDocs(q);
+            pSnap.forEach(d => fetched.push({ id: d.id, ...d.data() }));
+          }
+          setRequests(prev => {
+            const existingIds = new Set(prev.map(r => r.id));
+            const merged = [...prev, ...fetched.filter(r => !existingIds.has(r.id))];
+            return merged.filter(r => reqIds.includes(r.id));
+          });
+        } else {
+          setRequests(prev => prev.filter(r => reqIds.includes(r.id)));
+        }
+        setLoadingReqs(false);
+      });
+
+      return () => { unsub(); unsubReqs(); };
     });
   }, []);
 
@@ -111,27 +147,37 @@ function FriendsPage() {
         return;
       }
 
-      // Add to my friends
-      await setDoc(doc(db, `profiles/${userId}/friends`, targetId), {
-        id: targetId,
-        addedAt: Date.now()
-      });
-      
-      // Add me to their friends (mutual)
-      await setDoc(doc(db, `profiles/${targetId}/friends`, userId), {
+      // Check if already sent a request
+      const reqSnap = await getDoc(doc(db, `profiles/${targetId}/friend_requests`, userId));
+      if (reqSnap.exists()) {
+        setAddMsg({ text: "لقد قمت بإرسال طلب صداقة مسبقاً وهو قيد الانتظار.", type: "err" });
+        setAdding(false);
+        return;
+      }
+
+      // Check if they already sent us a request
+      const incomingReqSnap = await getDoc(doc(db, `profiles/${userId}/friend_requests`, targetId));
+      if (incomingReqSnap.exists()) {
+         setAddMsg({ text: "هذا اللاعب أرسل لك طلب صداقة بالفعل! تحقق من قائمة الطلبات المعلقة.", type: "err" });
+         setAdding(false);
+         return;
+      }
+
+      // Send friend request
+      await setDoc(doc(db, `profiles/${targetId}/friend_requests`, userId), {
         id: userId,
-        addedAt: Date.now()
+        timestamp: Date.now()
       });
 
       // Send push notification
       await sendPushNotification(
         targetId,
-        "صديق جديد! 👥",
-        `قام ${myProfile.display_name || "لاعب"} بإضافتك كصديق!`,
-        { type: "friend_add", url: "/friends" }
+        "طلب صداقة جديد! 👥",
+        `يرغب ${myProfile.display_name || "لاعب"} في إضافتك كصديق!`,
+        { type: "friend_request", url: "/friends" }
       );
 
-      setAddMsg({ text: `تم إضافة ${targetData.display_name} إلى أصدقائك بنجاح!`, type: "success" });
+      setAddMsg({ text: `تم إرسال طلب الصداقة إلى ${targetData.display_name} بانتظار موافقته!`, type: "success" });
       setAddCode("");
     } catch (err: any) {
       console.error(err);
@@ -144,6 +190,39 @@ function FriendsPage() {
   const genCode = () => {
     const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     return Array.from({ length: 6 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
+  };
+
+  const acceptRequest = async (reqId: string, reqName: string) => {
+    if (!userId) return;
+    try {
+      // Add to friends mutually
+      await setDoc(doc(db, `profiles/${userId}/friends`, reqId), { id: reqId, addedAt: Date.now() });
+      await setDoc(doc(db, `profiles/${reqId}/friends`, userId), { id: userId, addedAt: Date.now() });
+      
+      // Delete request
+      await deleteDoc(doc(db, `profiles/${userId}/friend_requests`, reqId));
+
+      // Notification
+      await sendPushNotification(
+        reqId,
+        "تم قبول طلب الصداقة! ✅",
+        `لقد وافق ${myProfile?.display_name || "اللاعب"} على طلب الصداقة.`,
+        { type: "friend_accept", url: "/friends" }
+      );
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء الموافقة على الطلب.");
+    }
+  };
+
+  const rejectRequest = async (reqId: string) => {
+    if (!userId) return;
+    try {
+      await deleteDoc(doc(db, `profiles/${userId}/friend_requests`, reqId));
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء رفض الطلب.");
+    }
   };
 
   const inviteFriend = async (friendId: string, friendName: string) => {
@@ -236,6 +315,46 @@ function FriendsPage() {
                 )}
               </form>
             </div>
+
+            {/* Pending Requests */}
+            {!loadingReqs && requests.length > 0 && (
+              <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden">
+                <div className="p-4 bg-primary/20 border-b border-white/5 font-bold text-lg text-primary flex items-center gap-2">
+                  <span>📬 طلبات الصداقة المعلقة ({requests.length})</span>
+                </div>
+                <div className="divide-y divide-white/5">
+                  {requests.map(req => (
+                    <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
+                      <div className="flex items-center gap-4 w-full md:w-auto">
+                         <Avatar seed={req.avatar_id} size="md" />
+                         <div>
+                            <div className="font-bold text-lg">{req.display_name}</div>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <span className="uppercase">{req.country || "unk"}</span>
+                                <span>•</span>
+                                <span>{req.friendCode}</span>
+                            </div>
+                         </div>
+                      </div>
+                      <div className="flex gap-2 w-full md:w-auto">
+                         <button 
+                           onClick={() => acceptRequest(req.id, req.display_name)}
+                           className="flex-1 md:flex-none btn-game bg-green-500 hover:bg-green-600 !py-2 !px-4 text-sm whitespace-nowrap"
+                         >
+                           قبول ✅
+                         </button>
+                         <button 
+                           onClick={() => rejectRequest(req.id)}
+                           className="flex-1 md:flex-none btn-game bg-red-500 hover:bg-red-600 !py-2 !px-4 text-sm whitespace-nowrap"
+                         >
+                           حذف ❌
+                         </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Friends List */}
             <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden">
