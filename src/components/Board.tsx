@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useRef, useState, useEffect } from "react";
 import { BASE_AREA, COLORS, HOME_COLUMN, SAFE_SQUARES, START_INDEX, TRACK, type Color } from "@/game/constants";
 import { cellFor, legalMoves } from "@/game/engine";
 import type { GameState } from "@/game/types";
@@ -62,6 +62,50 @@ export const Board = memo(function Board({
   const isCurrent = (seat: number) => seat === state.turn;
 
 
+  const prevPositions = useRef<Record<string, number>>({});
+  const [smokeParticles, setSmokeParticles] = useState<{ id: string, cx: number, cy: number }[]>([]);
+
+  useEffect(() => {
+    const newParticles: { id: string, cx: number, cy: number }[] = [];
+    
+    state.tokens.forEach((playerTokens, seat) => {
+      const trailType = trailClasses[seat];
+      // Since trailClasses[seat] returns the ID or css class?
+      // Wait, getTrailClass returns cssClass. We need to check if the item id is trail_glow.
+      // But getTrailClass is what we use.
+      // We should check the original trailThemeId!
+      const currentThemeId = Array.isArray(trailThemeId) ? trailThemeId[seat] : trailThemeId;
+      
+      if (currentThemeId === 'trail_glow') {
+        const pColor = state.players[seat].color;
+        playerTokens.forEach((pos, ti) => {
+          const key = `${seat}-${ti}`;
+          const oldPos = prevPositions.current[key];
+          
+          if (oldPos !== undefined && oldPos !== pos && oldPos > 0 && oldPos < 57) {
+            const cell = cellFor(pColor, oldPos);
+            if (cell) {
+              const [col, row] = cell;
+              newParticles.push({
+                id: `${key}-${Date.now()}-${Math.random()}`,
+                cx: (col + 0.5) * CELL,
+                cy: (row + 0.5) * CELL,
+              });
+            }
+          }
+          prevPositions.current[key] = pos;
+        });
+      }
+    });
+
+    if (newParticles.length > 0) {
+      setSmokeParticles(prev => [...prev, ...newParticles]);
+      setTimeout(() => {
+        setSmokeParticles(prev => prev.filter(p => !newParticles.some(np => np.id === p.id)));
+      }, 1200);
+    }
+  }, [state.tokens, trailThemeId, state.players]);
+
   
   function rect(col: number, row: number, fill: string, stroke = activeTheme.gridStroke, sw: number | string = activeTheme.gridStrokeWidth, key?: string) {
     return <rect key={key} x={col * CELL} y={row * CELL} width={CELL} height={CELL} fill={fill} stroke={stroke} strokeWidth={sw} />;
@@ -73,8 +117,23 @@ export const Board = memo(function Board({
       className="w-full h-auto select-none" 
       style={{ maxWidth: "100%" }}
     >
+      <defs>
+        <filter id="smoke-blur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+      </defs>
+
       {/* background */}
       <rect x={0} y={0} width={SIZE} height={SIZE} fill={activeTheme.bg} rx={16} />
+
+      {/* Smoke particles */}
+      {smokeParticles.map(p => (
+        <g key={p.id} className="smoke-particle" style={{ pointerEvents: 'none' }}>
+          <circle cx={p.cx - 6} cy={p.cy} r={16} fill="#ef4444" opacity={0.6} filter="url(#smoke-blur)" />
+          <circle cx={p.cx + 6} cy={p.cy} r={16} fill="#06b6d4" opacity={0.6} filter="url(#smoke-blur)" />
+          <circle cx={p.cx} cy={p.cy - 4} r={12} fill="#ffffff" opacity={0.8} filter="url(#smoke-blur)" />
+        </g>
+      ))}
 
       {/* 4 colored bases (6x6 corners) */}
       {([
