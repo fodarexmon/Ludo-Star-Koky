@@ -425,7 +425,7 @@ export const Board = memo(function Board({
                 </g>
               )}
               {tokenShape === "pin" && (
-                <g transform="scale(1.2)">
+                <g transform="scale(1.4)">
                   <path d={`M0,${CELL*0.35} C${CELL*0.3},${CELL*0.05} ${CELL*0.35},${-CELL*0.35} 0,${-CELL*0.4} C${-CELL*0.35},${-CELL*0.35} ${-CELL*0.3},${CELL*0.05} 0,${CELL*0.35} Z`} fill="#f8fafc" stroke="#94a3b8" strokeWidth={2} strokeLinejoin="round" />
                   <circle cx={0} cy={-CELL*0.1} r={CELL * 0.18} fill={COLOR_HEX[p.color]} />
                   <circle cx={-CELL * 0.05} cy={-CELL * 0.15} r={CELL * 0.05} fill="#fff" opacity={0.8} />
