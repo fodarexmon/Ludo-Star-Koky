@@ -96,7 +96,8 @@ function Match({ game, setGame, onExit }: { game: GameState; setGame: (g: GameSt
   const aiTimer = useRef<number | null>(null);
   const passTimer = useRef<number | null>(null);
 
-  const [myEquipped, setMyEquipped] = useState<Record<string, string>>({});
+  const profile = useMemo(() => loadProfile(), []);
+  const [myEquipped, setMyEquipped] = useState<Record<string, string>>(profile.equipped || {});
 
   useEffect(() => {
     let unsubSnap: (() => void) | undefined;
