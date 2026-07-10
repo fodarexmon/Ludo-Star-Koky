@@ -326,7 +326,7 @@ function FriendsPage() {
                   {requests.map(req => (
                     <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
                       <div className="flex items-center gap-4 w-full md:w-auto">
-                         <Avatar seed={req.avatar_id} size="md" />
+                         <Avatar id={req.avatar_id || "a1"} size={48} />
                          <div>
                             <div className="font-bold text-lg">{req.display_name}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-1">
