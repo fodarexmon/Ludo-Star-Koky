@@ -251,7 +251,7 @@ export const STORE_ITEMS: StoreItem[] = [
     description: "إطار ناري متحرك حول صورتك.",
     price: 800,
     icon: "🔥",
-    frameTheme: { cssClass: "ring-4 ring-orange-500 shadow-[0_0_15px_#f97316] animate-pulse" },
+    frameTheme: { cssClass: "frame-fire" },
   },
   {
     id: "frame_neon",
@@ -260,7 +260,7 @@ export const STORE_ITEMS: StoreItem[] = [
     description: "إطار فسفوري مشع.",
     price: 1000,
     icon: "⚡",
-    frameTheme: { cssClass: "ring-4 ring-[#39ff14] shadow-[0_0_20px_#39ff14]" },
+    frameTheme: { cssClass: "frame-neon" },
   },
   {
     id: "frame_golden_wreath",
@@ -269,7 +269,7 @@ export const STORE_ITEMS: StoreItem[] = [
     description: "إطار راقي بأوراق الذهب المتلألئة.",
     price: 1200,
     icon: "🌿",
-    frameTheme: { cssClass: "ring-4 ring-[#FFD700] shadow-[0_0_15px_#FFD700] border-[2px] border-dashed border-[#B8860B]" },
+    frameTheme: { cssClass: "frame-golden-wreath" },
   },
   {
     id: "frame_roses",
@@ -278,7 +278,7 @@ export const STORE_ITEMS: StoreItem[] = [
     description: "إطار مزين بألوان الورود الزاهية.",
     price: 700,
     icon: "🌹",
-    frameTheme: { cssClass: "ring-4 ring-[#FF1493] shadow-[0_0_15px_#FF69B4]" },
+    frameTheme: { cssClass: "frame-roses" },
   },
 
   // Trails
