@@ -2,6 +2,14 @@
 @import "tw-animate-css";
 @source "../src";
 
+@keyframes smokeFade {
+  0% { opacity: 0.8; transform: scale(0.8) translate(0, 0); }
+  100% { opacity: 0; transform: scale(1.5) translate(0, -10px); }
+}
+.smoke-particle {
+  animation: smokeFade 1.2s ease-out forwards;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
