@@ -1308,7 +1308,7 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
       clearTimeout(t2);
       clearTimeout(t3);
     };
-  }, [chat, players]);
+  }, [chat.id, chat.senderId, chat.receiverId, players]);
 
   if (!pos || stage === "done") return null;
 
