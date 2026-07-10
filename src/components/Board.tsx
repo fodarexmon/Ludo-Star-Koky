@@ -388,7 +388,7 @@ export const Board = memo(function Board({
               <circle cx={0} cy={3} r={CELL * 0.35} fill="#000" opacity={0.25} />
               
               {tokenShape === "crown" && (
-                <g>
+                <g transform="scale(1.4)">
                   <path d={`M${-CELL*0.25},${CELL*0.25} L${CELL*0.25},${CELL*0.25} L${CELL*0.32},${-CELL*0.2} L${CELL*0.12},${-CELL*0.02} L${0},${-CELL*0.3} L${-CELL*0.12},${-CELL*0.02} L${-CELL*0.32},${-CELL*0.2} Z`} fill={COLOR_HEX[p.color]} stroke="#fff" strokeWidth={1.5} strokeLinejoin="round" />
                   <circle cx={0} cy={-CELL*0.3} r={CELL * 0.06} fill="#FFD700" stroke="#fff" strokeWidth={1} />
                   <circle cx={-CELL*0.32} cy={-CELL*0.2} r={CELL * 0.06} fill="#FFD700" stroke="#fff" strokeWidth={1} />
@@ -397,7 +397,7 @@ export const Board = memo(function Board({
                 </g>
               )}
               {tokenShape === "star" && (
-                <g transform="scale(1.2)">
+                <g transform="scale(1.4)">
                   <path d={`M0,${-CELL*0.45} L${CELL*0.12},${-CELL*0.12} L${CELL*0.45},${-CELL*0.15} L${CELL*0.15},${CELL*0.1} L${CELL*0.25},${CELL*0.45} L0,${CELL*0.2} L${-CELL*0.25},${CELL*0.45} L${-CELL*0.15},${CELL*0.1} L${-CELL*0.45},${-CELL*0.15} L${-CELL*0.12},${-CELL*0.12} Z`} fill="#000" opacity={0.3} transform="translate(0, 3)" />
                   <path d={`M0,${-CELL*0.45} L${CELL*0.12},${-CELL*0.12} L${CELL*0.45},${-CELL*0.15} L${CELL*0.15},${CELL*0.1} L${CELL*0.25},${CELL*0.45} L0,${CELL*0.2} L${-CELL*0.25},${CELL*0.45} L${-CELL*0.15},${CELL*0.1} L${-CELL*0.45},${-CELL*0.15} L${-CELL*0.12},${-CELL*0.12} Z`} fill={COLOR_HEX[p.color]} stroke="#fff" strokeWidth={1} strokeLinejoin="round" />
                   
@@ -415,7 +415,7 @@ export const Board = memo(function Board({
                 </g>
               )}
               {tokenShape === "gem" && (
-                <g transform="scale(1.2)">
+                <g transform="scale(1.4)">
                   <path d={`M${-CELL*0.2},${-CELL*0.3} L${CELL*0.2},${-CELL*0.3} L${CELL*0.35},${-CELL*0.05} L0,${CELL*0.4} L${-CELL*0.35},${-CELL*0.05} Z`} fill={COLOR_HEX[p.color]} stroke="#fff" strokeWidth={1.5} strokeLinejoin="round" />
                   <path d={`M${-CELL*0.35},${-CELL*0.05} L${CELL*0.35},${-CELL*0.05}`} stroke="rgba(255,255,255,0.6)" strokeWidth={1} />
                   <path d={`M${-CELL*0.2},${-CELL*0.3} L${-CELL*0.15},${-CELL*0.05} L0,${CELL*0.4}`} stroke="rgba(255,255,255,0.6)" strokeWidth={1} />
