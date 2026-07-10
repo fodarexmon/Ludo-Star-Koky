@@ -27,6 +27,7 @@ export interface FrameTheme {
 
 export interface TrailTheme {
   cssClass: string;
+  style?: React.CSSProperties;
 }
 
 export interface EmojiTheme {
@@ -297,7 +298,10 @@ export const STORE_ITEMS: StoreItem[] = [
     description: "يترك الحجر توهجاً سحرياً.",
     price: 600,
     icon: "✨",
-    trailTheme: { cssClass: "drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" },
+    trailTheme: { 
+      cssClass: "",
+      style: { filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6))" }
+    },
   },
 
   // Emojis

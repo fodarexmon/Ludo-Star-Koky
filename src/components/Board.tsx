@@ -51,9 +51,11 @@ export const Board = memo(function Board({
   
   const getTokenShape = (id?: string) => STORE_ITEMS.find((i) => i.id === id)?.tokenTheme?.shape || "circle";
   const getTrailClass = (id?: string) => STORE_ITEMS.find((i) => i.id === id)?.trailTheme?.cssClass || "";
+  const getTrailStyle = (id?: string) => STORE_ITEMS.find((i) => i.id === id)?.trailTheme?.style || {};
 
   const tokenShapes = Array.isArray(tokenThemeId) ? tokenThemeId.map(getTokenShape) : Array(4).fill(getTokenShape(tokenThemeId));
   const trailClasses = Array.isArray(trailThemeId) ? trailThemeId.map(getTrailClass) : Array(4).fill(getTrailClass(trailThemeId));
+  const trailStyles = Array.isArray(trailThemeId) ? trailThemeId.map(getTrailStyle) : Array(4).fill(getTrailStyle(trailThemeId));
 
   // figure legal moves for current player to highlight
   const legal = state.dice && state.awaitingMove ? legalMoves(state, state.dice) : [];
@@ -311,11 +313,12 @@ export const Board = memo(function Board({
           const interactive = isCurrent(seat) && legal.includes(ti);
           const tokenShape = tokenShapes[seat];
           const trailClass = trailClasses[seat];
+          const trailStyle = trailStyles[seat];
           return (
             <g key={`t-${seat}-${ti}`}
                onClick={interactive && onTokenClick ? () => onTokenClick(seat, ti) : undefined}
                className={trailClass}
-               style={{ cursor: interactive ? "pointer" : "default", transition: "transform 0.3s ease" }}
+               style={{ cursor: interactive ? "pointer" : "default", transition: "transform 0.3s ease", ...trailStyle }}
                transform={`translate(${cx}, ${cy})`}>
               {interactive && (
                 <circle cx={0} cy={0} r={CELL * 0.55} fill="none" stroke="#fde68a" strokeWidth={3}>
