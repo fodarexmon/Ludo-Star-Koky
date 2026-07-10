@@ -1049,6 +1049,7 @@ function RoomPage() {
       navBlocker={navBlocker}
       getServerTime={getServerTime}
       isWaitingForServer={isWaitingForServer}
+      disconnectedUsers={disconnectedUsers}
     />
   );
 }
@@ -1470,6 +1471,7 @@ function OnlineMatch({
   navBlocker,
   getServerTime,
   isWaitingForServer,
+  disconnectedUsers,
 }: any) {
   const voiceChatDisabled = loadProfile().voiceChatDisabled;
 
