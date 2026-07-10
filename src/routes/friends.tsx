@@ -22,6 +22,8 @@ function FriendsPage() {
   const [adding, setAdding] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loadingReqs, setLoadingReqs] = useState(true);
+  const [sentRequests, setSentRequests] = useState<any[]>([]);
+  const [loadingSentReqs, setLoadingSentReqs] = useState(true);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
@@ -108,7 +110,41 @@ function FriendsPage() {
         setLoadingReqs(false);
       });
 
-      return () => { unsub(); unsubReqs(); };
+      const sentRequestsRef = collection(db, `profiles/${user.uid}/sent_requests`);
+      const knownSentReqIds: string[] = [];
+      const unsubSentReqs = onSnapshot(sentRequestsRef, async (snap) => {
+        const reqIds = snap.docs.map(d => d.id);
+        if (reqIds.length === 0) {
+          setSentRequests([]);
+          setLoadingSentReqs(false);
+          return;
+        }
+        
+        const newIds = reqIds.filter(id => !knownSentReqIds.includes(id));
+        if (newIds.length > 0) {
+          knownSentReqIds.push(...newIds);
+          const chunks = [];
+          for (let i = 0; i < newIds.length; i += 10) {
+            chunks.push(newIds.slice(i, i + 10));
+          }
+          let fetched: any[] = [];
+          for (const chunk of chunks) {
+            const q = query(collection(db, "profiles"), where("id", "in", chunk));
+            const pSnap = await getDocs(q);
+            pSnap.forEach(d => fetched.push({ id: d.id, ...d.data() }));
+          }
+          setSentRequests(prev => {
+            const existingIds = new Set(prev.map(r => r.id));
+            const merged = [...prev, ...fetched.filter(r => !existingIds.has(r.id))];
+            return merged.filter(r => reqIds.includes(r.id));
+          });
+        } else {
+          setSentRequests(prev => prev.filter(r => reqIds.includes(r.id)));
+        }
+        setLoadingSentReqs(false);
+      });
+
+      return () => { unsub(); unsubReqs(); unsubSentReqs(); };
     });
   }, []);
 
@@ -168,6 +204,10 @@ function FriendsPage() {
         id: userId,
         timestamp: Date.now()
       });
+      await setDoc(doc(db, `profiles/${userId}/sent_requests`, targetId), {
+        id: targetId,
+        timestamp: Date.now()
+      });
 
       // Send push notification
       await sendPushNotification(
@@ -199,8 +239,9 @@ function FriendsPage() {
       await setDoc(doc(db, `profiles/${userId}/friends`, reqId), { id: reqId, addedAt: Date.now() });
       await setDoc(doc(db, `profiles/${reqId}/friends`, userId), { id: userId, addedAt: Date.now() });
       
-      // Delete request
+      // Delete request and cleanup sent_requests
       await deleteDoc(doc(db, `profiles/${userId}/friend_requests`, reqId));
+      await deleteDoc(doc(db, `profiles/${reqId}/sent_requests`, userId));
 
       // Notification
       await sendPushNotification(
@@ -219,9 +260,21 @@ function FriendsPage() {
     if (!userId) return;
     try {
       await deleteDoc(doc(db, `profiles/${userId}/friend_requests`, reqId));
+      await deleteDoc(doc(db, `profiles/${reqId}/sent_requests`, userId));
     } catch (e) {
       console.error(e);
       alert("حدث خطأ أثناء رفض الطلب.");
+    }
+  };
+
+  const cancelSentRequest = async (targetId: string) => {
+    if (!userId) return;
+    try {
+      await deleteDoc(doc(db, `profiles/${targetId}/friend_requests`, userId));
+      await deleteDoc(doc(db, `profiles/${userId}/sent_requests`, targetId));
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء سحب الطلب.");
     }
   };
 
@@ -318,7 +371,7 @@ function FriendsPage() {
 
             {/* Pending Requests */}
             {!loadingReqs && requests.length > 0 && (
-              <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden">
+              <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden mb-6">
                 <div className="p-4 bg-primary/20 border-b border-white/5 font-bold text-lg text-primary flex items-center gap-2">
                   <span>📬 طلبات الصداقة المعلقة ({requests.length})</span>
                 </div>
@@ -348,6 +401,40 @@ function FriendsPage() {
                            className="flex-1 md:flex-none btn-game bg-red-500 hover:bg-red-600 !py-2 !px-4 text-sm whitespace-nowrap"
                          >
                            حذف ❌
+                         </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sent Requests */}
+            {!loadingSentReqs && sentRequests.length > 0 && (
+              <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden mb-6">
+                <div className="p-4 bg-white/5 border-b border-white/5 font-bold text-lg flex items-center gap-2">
+                  <span>📤 الطلبات المُرسلة ({sentRequests.length})</span>
+                </div>
+                <div className="divide-y divide-white/5">
+                  {sentRequests.map(req => (
+                    <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
+                      <div className="flex items-center gap-4 w-full md:w-auto">
+                         <Avatar id={req.avatar_id || "a1"} size={48} />
+                         <div>
+                            <div className="font-bold text-lg">{req.display_name}</div>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <span className="uppercase">{req.country || "unk"}</span>
+                                <span>•</span>
+                                <span>{req.friendCode}</span>
+                            </div>
+                         </div>
+                      </div>
+                      <div className="flex gap-2 w-full md:w-auto">
+                         <button 
+                           onClick={() => cancelSentRequest(req.id)}
+                           className="flex-1 md:flex-none btn-game bg-red-500 hover:bg-red-600 !py-2 !px-4 text-sm whitespace-nowrap"
+                         >
+                           إلغاء الطلب 🗑️
                          </button>
                       </div>
                     </div>
