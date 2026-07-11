@@ -22,7 +22,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "شراء أول عنصر لك من المتجر.",
     icon: "🛍️",
     reward: 100,
-    condition: (stats, profile) => (profile?.purchasedItems?.length || 0) >= 1,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 1,
   },
   {
     id: "fierce",
@@ -78,7 +78,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "شراء 5 عناصر من المتجر.",
     icon: "👔",
     reward: 500,
-    condition: (stats, profile) => (profile?.purchasedItems?.length || 0) >= 5,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 5,
   },
   {
     id: "pro_killer",
@@ -134,7 +134,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "شراء 15 عنصراً من المتجر.",
     icon: "🏺",
     reward: 1500,
-    condition: (stats, profile) => (profile?.purchasedItems?.length || 0) >= 15,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 15,
   },
   {
     id: "butcher",
@@ -158,7 +158,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: "شراء 25 عنصراً من المتجر.",
     icon: "💳",
     reward: 3000,
-    condition: (stats, profile) => (profile?.purchasedItems?.length || 0) >= 25,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 25,
   },
   {
     id: "gold_king",

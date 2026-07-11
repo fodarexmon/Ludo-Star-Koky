@@ -51,7 +51,7 @@ export function useAchievements(userId: string | null, profile: any) {
     };
 
     checkAchievements();
-  }, [userId, profile?.stats]);
+  }, [userId, profile?.stats, profile?.inventory?.length]);
 
   return { newAchievement, clearAchievement: () => setNewAchievement(null) };
 }
