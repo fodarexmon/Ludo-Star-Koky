@@ -1,3 +1,5 @@
+import { STORE_ITEMS } from "./store";
+
 export interface Achievement {
   id: string;
   title: string;
@@ -131,10 +133,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "collector",
     title: "جامع التحف",
-    description: "شراء 10 عناصر من المتجر.",
+    description: "شراء 15 عنصراً من المتجر.",
     icon: "🏺",
     reward: 1500,
-    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 10,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 15,
   },
   {
     id: "butcher",
@@ -155,10 +157,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "golden_customer",
     title: "الزبون الذهبي",
-    description: "شراء 20 عنصراً من المتجر.",
+    description: "شراء كل العناصر من المتجر.",
     icon: "💳",
     reward: 3000,
-    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 20,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= STORE_ITEMS.filter(i => i.price > 0).length,
   },
   {
     id: "gold_king",
