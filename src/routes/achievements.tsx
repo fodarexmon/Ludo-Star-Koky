@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/integrations/firebase/client";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { ACHIEVEMENTS } from "@/data/achievements";
 
 export const Route = createFileRoute("/achievements")({
@@ -13,16 +13,25 @@ function AchievementsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    let unsubProfile: (() => void) | null = null;
+    const unsubAuth = auth.onAuthStateChanged((user) => {
       if (user) {
-        const snap = await getDoc(doc(db, "profiles", user.uid));
-        if (snap.exists()) {
-          setUnlockedIds(snap.data()?.achievements || []);
-        }
+        unsubProfile = onSnapshot(doc(db, "profiles", user.uid), (snap) => {
+          if (snap.exists()) {
+            setUnlockedIds(snap.data()?.achievements || []);
+          }
+          setLoading(false);
+        });
+      } else {
+        setUnlockedIds([]);
+        setLoading(false);
       }
-      setLoading(false);
     });
-    return () => unsub();
+
+    return () => {
+      unsubAuth();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   if (loading) {
