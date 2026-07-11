@@ -131,10 +131,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "collector",
     title: "جامع التحف",
-    description: "شراء 15 عنصراً من المتجر.",
+    description: "شراء 10 عناصر من المتجر.",
     icon: "🏺",
     reward: 1500,
-    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 15,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 10,
   },
   {
     id: "butcher",
@@ -155,10 +155,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: "golden_customer",
     title: "الزبون الذهبي",
-    description: "شراء 25 عنصراً من المتجر.",
+    description: "شراء 20 عنصراً من المتجر.",
     icon: "💳",
     reward: 3000,
-    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 25,
+    condition: (stats, profile) => (profile?.inventory?.length || 0) >= 20,
   },
   {
     id: "gold_king",
