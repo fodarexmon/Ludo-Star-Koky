@@ -87,15 +87,15 @@ export function Podium({
   };
 
   return (
-    <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-700 overflow-y-auto pt-20 pb-10">
+    <div className="absolute inset-0 z-[100] flex flex-col items-center justify-start bg-black/80 backdrop-blur-md animate-in fade-in duration-700 overflow-y-auto pt-8 pb-10">
       <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 mb-2 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] animate-in slide-in-from-top-10 duration-700 delay-150">
         {matchCount >= 5 ? "Series Champion!" : "GAME OVER"}
       </h2>
-      <div className="text-gray-300 text-lg font-medium mb-12 animate-in fade-in delay-300">
+      <div className="text-gray-300 text-lg font-medium mb-6 animate-in fade-in delay-300">
         {matchCount >= 5 ? "Final Series Standings" : `Match ${matchCount} of 5 Finished`}
       </div>
 
-      <div className="flex items-end gap-2 md:gap-6 h-64 mt-8">
+      <div className="flex items-end gap-2 md:gap-6 h-64 mt-4">
         {/* Second Place */}
         {second !== undefined && (
           <div className="flex flex-col items-center animate-in slide-in-from-bottom-24 duration-700 delay-500">
