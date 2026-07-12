@@ -386,13 +386,13 @@ function RoomPage() {
     // Mark players who left the room (or were disconnected) as resigned in the next match
     const currentActiveIds = remainingPlayers.map((p: any) => p.user_id) || [];
     const nextPlayers = game.players.map((p) => {
-      if (p.kind === "human" && p.userId && !currentActiveIds.includes(p.userId)) {
+      if (p.kind !== "ai" && p.userId && !currentActiveIds.includes(p.userId)) {
         return { ...p, hasResigned: true };
       }
       return p;
     });
 
-    const activeHumans = nextPlayers.filter((p) => p.kind === "human" && !p.hasResigned);
+    const activeHumans = nextPlayers.filter((p) => p.kind !== "ai" && !p.hasResigned);
     if (activeHumans.length < 2) {
       if (!podiumKickRef.current) {
         podiumKickRef.current = true;
@@ -425,7 +425,7 @@ function RoomPage() {
     if (!room || !game || !isHost || podiumKickRef.current) return;
     if (room.status === "finished" || gameOver(game)) {
       const currentActiveIds = room.players?.map((p: any) => p.user_id) || [];
-      const humanPlayersInGame = game.players.filter(p => p.kind === "human" && p.userId);
+      const humanPlayersInGame = game.players.filter(p => p.kind !== "ai" && p.userId);
       const activeHumanPlayers = humanPlayersInGame.filter(p => p.userId && currentActiveIds.includes(p.userId) && !p.hasResigned);
       
       if (humanPlayersInGame.length > 1 && activeHumanPlayers.length < 2) {
