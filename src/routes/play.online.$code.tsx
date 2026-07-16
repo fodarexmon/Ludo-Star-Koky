@@ -386,11 +386,13 @@ function RoomPage() {
 
     // Mark players who left the room (or were disconnected) as resigned in the next match
     const currentActiveIds = remainingPlayers.map((p: any) => p.user_id) || [];
-    const nextPlayers = game.players.map((p) => {
-      if (p.kind !== "ai" && p.userId && !currentActiveIds.includes(p.userId)) {
-        return { ...p, hasResigned: true };
+    const scrambledColors = [...COLORS].sort(() => Math.random() - 0.5);
+    const nextPlayers = game.players.map((p, idx) => {
+      const newP = { ...p, color: scrambledColors[idx] };
+      if (newP.kind !== "ai" && newP.userId && !currentActiveIds.includes(newP.userId)) {
+        newP.hasResigned = true;
       }
-      return p;
+      return newP;
     });
 
     const activeHumans = nextPlayers.filter((p) => p.kind !== "ai" && !p.hasResigned);
