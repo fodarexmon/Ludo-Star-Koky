@@ -20,12 +20,12 @@ export const Route = createFileRoute("/play/offline")({
   component: OfflinePage,
 });
 
-interface Seat { kind: PlayerKind | "off"; name: string; avatarId: string; }
+interface Seat { kind: PlayerKind | "off" | "my_profile"; name: string; avatarId: string; }
 
 function OfflinePage() {
   const profile = useMemo(() => loadProfile(), []);
   const [seats, setSeats] = useState<Seat[]>([
-    { kind: "human", name: profile.displayName, avatarId: profile.avatarId },
+    { kind: "my_profile", name: profile.displayName, avatarId: profile.avatarId },
     { kind: "ai", name: "Bot Green", avatarId: "a3" },
     { kind: "ai", name: "Bot Yellow", avatarId: "a5" },
     { kind: "off", name: "Bot Blue", avatarId: "a8" },
@@ -34,7 +34,20 @@ function OfflinePage() {
 
   function start() {
     const players: Player[] = seats
-      .map((s, i) => s.kind !== "off" ? { seat: i, color: COLORS[i], name: s.name || `Player ${i + 1}`, avatarId: s.avatarId, kind: s.kind as PlayerKind, country: i === 0 ? profile.country : undefined } : null)
+      .map((s, i) => {
+        if (s.kind === "off") return null;
+        const isMe = s.kind === "my_profile";
+        const kind = isMe ? "human" : s.kind as PlayerKind;
+        return { 
+          seat: i, 
+          color: COLORS[i], 
+          name: isMe ? profile.displayName || `Player ${i + 1}` : (s.name || `Player ${i + 1}`), 
+          avatarId: isMe ? profile.avatarId : s.avatarId, 
+          kind, 
+          userId: isMe ? "my_profile" : undefined,
+          country: isMe ? profile.country : undefined 
+        };
+      })
       .filter(Boolean) as Player[];
     if (players.length < 2) return;
     // renumber seats consecutively
@@ -56,10 +69,11 @@ function OfflinePage() {
                 <select value={s.kind} onChange={(e) => setSeats((p) => p.map((x, j) => j === i ? { ...x, kind: e.target.value as Seat["kind"] } : x))}
                   className="rounded-lg border border-border bg-secondary px-3 py-2">
                   <option value="off">— Empty</option>
-                  <option value="human">Human</option>
+                  <option value="human">Human (Local)</option>
+                  <option value="my_profile">My Profile (You)</option>
                   <option value="ai">Computer</option>
                 </select>
-                {s.kind !== "off" && <>
+                {s.kind !== "off" && s.kind !== "my_profile" && <>
                   <input
                     value={s.name}
                     onChange={(e) => setSeats((p) => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
@@ -69,6 +83,12 @@ function OfflinePage() {
                     className="rounded-lg border border-border bg-secondary px-2 py-2">
                     {AVATARS.map((a) => <option key={a.id} value={a.id}>{a.emoji}</option>)}
                   </select>
+                </>}
+                {s.kind === "my_profile" && <>
+                  <div className="flex-1 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-muted-foreground flex items-center gap-2">
+                    <Avatar id={profile.avatarId} size={24} frameThemeId={(profile as any).equipped?.frame} />
+                    {profile.displayName || "Player"}
+                  </div>
                 </>}
               </div>
             ))}
@@ -228,20 +248,20 @@ function Match({ game, setGame, onExit }: { game: GameState; setGame: (g: GameSt
         </div>
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="panel">
-            <Board state={displayGame} themeId={myEquipped.board} tokenThemeId={myEquipped.token} trailThemeId={myEquipped.trail} onTokenClick={currentPlayer.kind === "human" && !isAnimating ? doTokenMove : undefined} />
+            <Board state={displayGame} themeId={myEquipped.board} tokenThemeId={displayGame.players.map(p => p.userId === "my_profile" ? myEquipped.token : undefined)} trailThemeId={displayGame.players.map(p => p.userId === "my_profile" ? myEquipped.trail : undefined)} onTokenClick={currentPlayer.kind === "human" && !isAnimating ? doTokenMove : undefined} />
           </div>
           <div className="space-y-3">
             <div className="panel">
               <div className="mb-3 text-sm text-muted-foreground">Current turn</div>
               <div className="flex items-center gap-3">
-                <Avatar id={currentPlayer.avatarId} size={56} ring={`var(--ludo-${currentPlayer.color})`} frameThemeId={myEquipped.frame} />
+                <Avatar id={currentPlayer.avatarId} size={56} ring={`var(--ludo-${currentPlayer.color})`} frameThemeId={currentPlayer.userId === "my_profile" ? myEquipped.frame : undefined} />
                 <div className="flex-1">
                   <div className="font-bold">{currentPlayer.name}</div>
                   <div className="text-xs text-muted-foreground capitalize">{currentPlayer.color}{game.sixCount ? ` · ${"6".repeat(game.sixCount)}` : ""}</div>
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
-                <Dice value={displayGame.dice ?? displayGame.lastDiceRolled ?? null} rolling={rolling} size={72} themeId={myEquipped.dice} />
+                <Dice value={displayGame.dice ?? displayGame.lastDiceRolled ?? null} rolling={rolling} size={72} themeId={currentPlayer.userId === "my_profile" ? myEquipped.dice : undefined} />
                 <button onClick={doRoll} disabled={!canRoll || currentPlayer.kind === "ai"} className="btn-game">
                   {rolling ? "..." : game.awaitingMove ? "Choose token" : "Roll dice"}
                 </button>
@@ -283,7 +303,7 @@ function Match({ game, setGame, onExit }: { game: GameState; setGame: (g: GameSt
                   return (
                     <div key={seat} className={`flex items-center gap-4 p-3 rounded-xl border border-white/5 bg-black/20 ${index === 0 ? "bg-primary/10 border-primary/30" : ""}`}>
                       <div className={`text-2xl font-black w-8 ${rankColors[index]}`}>{medals[index] || `#${index + 1}`}</div>
-                      <Avatar id={p.avatarId} size={40} />
+                      <Avatar id={p.avatarId} size={40} frameThemeId={p.userId === "my_profile" ? myEquipped.frame : undefined} />
                       <div className="flex-1 text-left font-bold text-lg">{p.name}</div>
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: `var(--ludo-${p.color})` }} />
                     </div>
