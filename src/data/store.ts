@@ -337,7 +337,7 @@ export const STORE_ITEMS: StoreItem[] = [
     id: "emoji_pack_animated",
     type: "emoji",
     name: "الحزمة المتحركة (Lottie)",
-    description: "45 إيموجي متحرك نابض بالحياة!",
+    description: "57 إيموجي متحرك نابض بالحياة!",
     price: 3000,
     icon: "🤩",
     emojiTheme: {
@@ -353,7 +353,10 @@ export const STORE_ITEMS: StoreItem[] = [
         "lottie:1f92b", "lottie:1f92d", "lottie:1f971", "lottie:1f924",
         "lottie:1f480", "lottie:1f922", "lottie:1f47f", "lottie:1f634",
         "lottie:1f912", "lottie:1f915", "lottie:1f920", "lottie:1f9d0",
-        "lottie:1f345", "lottie:1f63e", "🔨", "🔪", "💦"
+        "lottie:1f345", "lottie:1f63e", "lottie:1f44f", "lottie:1f91c_1f3fb", "lottie:1f44a",
+        "lottie:1f485_1f3fb", "lottie:1f483", "lottie:1f400", "lottie:1facf",
+        "lottie:1f412", "lottie:1f9a7", "lottie:1fab3", "lottie:2615",
+        "lottie:1f388", "lottie:1f9f9", "lottie:1fa8f", "lottie:1f4a3"
       ],
     },
   },
