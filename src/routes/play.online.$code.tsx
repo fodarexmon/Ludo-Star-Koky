@@ -1359,7 +1359,7 @@ function ChatMenu({
   code: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [tab, setTab] = useState<"phrases" | "emojis" | "custom">("phrases");
+  const [tab, setTab] = useState<"phrases" | "static_emojis" | "animated_emojis" | "custom">("phrases");
   const [customText, setCustomText] = useState("");
   const [selectedContent, setSelectedContent] = useState<{
     type: "text" | "emoji";
@@ -1468,21 +1468,27 @@ function ChatMenu({
 
             {!selectedContent ? (
               <>
-                <div className="flex gap-2 mb-4 p-1 bg-black/40 rounded-xl">
+                <div className="flex gap-2 mb-4 p-1 bg-black/40 rounded-xl overflow-x-auto hide-scrollbar">
                   <button
-                    className={`flex-1 py-2 rounded-lg font-bold ${tab === "phrases" ? "bg-primary text-white" : "text-muted-foreground"}`}
+                    className={`flex-shrink-0 px-4 py-2 text-sm rounded-lg font-bold ${tab === "phrases" ? "bg-primary text-white" : "text-muted-foreground"}`}
                     onClick={() => setTab("phrases")}
                   >
-                    جمل جاهزة
+                    رسائل
                   </button>
                   <button
-                    className={`flex-1 py-2 rounded-lg font-bold ${tab === "emojis" ? "bg-primary text-white" : "text-muted-foreground"}`}
-                    onClick={() => setTab("emojis")}
+                    className={`flex-shrink-0 px-4 py-2 text-sm rounded-lg font-bold ${tab === "animated_emojis" ? "bg-primary text-white" : "text-muted-foreground"}`}
+                    onClick={() => setTab("animated_emojis")}
                   >
-                    ملصقات
+                    متحركة
                   </button>
                   <button
-                    className={`flex-1 py-2 rounded-lg font-bold ${tab === "custom" ? "bg-primary text-white" : "text-muted-foreground"}`}
+                    className={`flex-shrink-0 px-4 py-2 text-sm rounded-lg font-bold ${tab === "static_emojis" ? "bg-primary text-white" : "text-muted-foreground"}`}
+                    onClick={() => setTab("static_emojis")}
+                  >
+                    ساكنة
+                  </button>
+                  <button
+                    className={`flex-shrink-0 px-4 py-2 text-sm rounded-lg font-bold ${tab === "custom" ? "bg-primary text-white" : "text-muted-foreground"}`}
                     onClick={() => setTab("custom")}
                   >
                     كتابة ✏️
@@ -1501,15 +1507,31 @@ function ChatMenu({
                       </button>
                     ))}
                   </div>
-                ) : tab === "emojis" ? (
-                  <div className="grid grid-cols-4 gap-3">
-                    {ALL_MY_EMOJIS.map((e, idx) => (
+                ) : tab === "animated_emojis" ? (
+                  <div className="grid grid-cols-4 gap-3 max-h-60 overflow-y-auto">
+                    {ALL_MY_EMOJIS.filter(e => e.startsWith("lottie:")).length > 0 ? ALL_MY_EMOJIS.filter(e => e.startsWith("lottie:")).map((e, idx) => (
                       <button
                         key={e}
                         onClick={() => setSelectedContent({ type: "emoji", content: e })}
                         className="flex justify-center items-center text-4xl p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-transform hover:scale-110"
                       >
-                        {e.startsWith("lottie:") ? <LottieEmoji hex={e.split(":")[1]} size={48} /> : e}
+                        <LottieEmoji hex={e.split(":")[1]} size={48} />
+                      </button>
+                    )) : (
+                      <div className="col-span-4 text-center p-4 text-muted-foreground text-sm">
+                        لا تملك إيموجيات متحركة. تفضل بزيارة المتجر!
+                      </div>
+                    )}
+                  </div>
+                ) : tab === "static_emojis" ? (
+                  <div className="grid grid-cols-4 gap-3 max-h-60 overflow-y-auto">
+                    {ALL_MY_EMOJIS.filter(e => !e.startsWith("lottie:")).map((e, idx) => (
+                      <button
+                        key={e}
+                        onClick={() => setSelectedContent({ type: "emoji", content: e })}
+                        className="flex justify-center items-center text-4xl p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-transform hover:scale-110"
+                      >
+                        {e}
                       </button>
                     ))}
                   </div>
