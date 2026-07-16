@@ -51,6 +51,7 @@ import { Podium } from "@/components/Podium";
 import { useAchievements } from "@/hooks/useAchievements";
 import { AchievementPopup } from "@/components/AchievementPopup";
 import { sendPushNotification } from "@/utils/notifications";
+import { LottieEmoji } from "@/components/LottieEmoji";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
 import { loadProfile } from "@/lib/profile";
 import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
@@ -1330,7 +1331,11 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
       className="drop-shadow-2xl"
     >
       {chat.type === "emoji" ? (
-        <span className="text-6xl">{chat.content}</span>
+        chat.content.startsWith("lottie:") ? (
+          <LottieEmoji hex={chat.content.split(":")[1]} size={96} />
+        ) : (
+          <span className="text-6xl">{chat.content}</span>
+        )
       ) : (
         <div className="bg-white text-black px-4 py-2 rounded-2xl rounded-tl-none font-bold text-xl border-4 border-primary shadow-xl whitespace-nowrap">
           {chat.content}
@@ -1502,9 +1507,9 @@ function ChatMenu({
                       <button
                         key={e}
                         onClick={() => setSelectedContent({ type: "emoji", content: e })}
-                        className="text-4xl p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-transform hover:scale-110"
+                        className="flex justify-center items-center text-4xl p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-transform hover:scale-110"
                       >
-                        {e}
+                        {e.startsWith("lottie:") ? <LottieEmoji hex={e.split(":")[1]} size={48} /> : e}
                       </button>
                     ))}
                   </div>
@@ -1553,8 +1558,12 @@ function ChatMenu({
                 </button>
                 <div className="text-center mb-6">
                   <p className="text-muted-foreground mb-2">إرسال إلى:</p>
-                  <div className="text-3xl font-bold bg-black/40 py-4 rounded-xl border border-white/5">
-                    {selectedContent.content}
+                  <div className="flex justify-center items-center text-3xl font-bold bg-black/40 py-4 rounded-xl border border-white/5 min-h-[5rem]">
+                    {selectedContent.type === "emoji" && selectedContent.content.startsWith("lottie:") ? (
+                      <LottieEmoji hex={selectedContent.content.split(":")[1]} size={64} />
+                    ) : (
+                      selectedContent.content
+                    )}
                   </div>
                 </div>
 
@@ -1969,6 +1978,17 @@ function OnlineMatch({
                           غير متصل
                         </div>
                       )}
+                      {room?.reactions?.[i] && Date.now() - room.reactions[i].timestamp < 4000 && (
+                        <div className="absolute -top-4 -right-4 z-50 animate-in zoom-in spin-in-12 duration-300">
+                          <div className="bg-white/10 backdrop-blur-md rounded-full p-2 border border-white/20 shadow-2xl">
+                            {room.reactions[i].emoji.startsWith("lottie:") ? (
+                              <LottieEmoji hex={room.reactions[i].emoji.split(":")[1]} size={48} />
+                            ) : (
+                              <span className="text-4xl">{room.reactions[i].emoji}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       {displayGame.missedTurns?.[i] > 0 && (
                         <div className="absolute top-0 right-0 -mt-2 -mr-2 bg-destructive/90 text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse z-10" title="مرات تفويت اللعب">
                           ⚠️ {displayGame.missedTurns[i]}/5
@@ -2052,7 +2072,7 @@ function OnlineMatch({
                               onClick={() => sendReaction(i, emoji)}
                               className="text-xl hover:scale-125 transition-transform bg-white/5 hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center"
                             >
-                              {emoji}
+                              {emoji.startsWith("lottie:") ? <LottieEmoji hex={emoji.split(":")[1]} size={24} /> : emoji}
                             </button>
                           ))}
                         </div>

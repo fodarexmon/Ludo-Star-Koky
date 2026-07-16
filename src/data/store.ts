@@ -31,6 +31,7 @@ export interface TrailTheme {
 }
 
 export interface EmojiTheme {
+  isAnimated?: boolean;
   emojis: string[];
 }
 
@@ -331,5 +332,23 @@ export const STORE_ITEMS: StoreItem[] = [
     price: 450,
     icon: "🐱",
     emojiTheme: { emojis: ["😺", "😹", "😻", "😼", "🙀", "😿", "😾"] },
+  },
+  {
+    id: "emoji_pack_animated",
+    type: "emoji",
+    name: "الحزمة المتحركة (Lottie)",
+    description: "20 إيموجي متحرك نابض بالحياة!",
+    price: 3000,
+    icon: "🤩",
+    emojiTheme: {
+      isAnimated: true,
+      emojis: [
+        "lottie:1f602", "lottie:1f62d", "lottie:1f621", "lottie:1f60d",
+        "lottie:1f92f", "lottie:1f631", "lottie:1f973", "lottie:1f97a",
+        "lottie:1f92e", "lottie:1f92c", "lottie:1f976", "lottie:1f921",
+        "lottie:1f47b", "lottie:1f4a9", "lottie:1f525", "lottie:1f4af",
+        "lottie:1f494", "lottie:1f389", "lottie:1f60e", "lottie:1f914",
+      ],
+    },
   },
 ];
