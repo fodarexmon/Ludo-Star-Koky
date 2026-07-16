@@ -24,6 +24,7 @@ function SettingsPage() {
   const [name, setName] = useState(initial.displayName);
   const [country, setCountry] = useState(initial.country);
   const [avatarId, setAvatarId] = useState(initial.avatarId);
+  const [frameThemeId, setFrameThemeId] = useState<string | undefined>(undefined);
   const [voiceChatDisabled, setVoiceChatDisabled] = useState(initial.voiceChatDisabled || false);
   const [saved, setSaved] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -39,6 +40,7 @@ function SettingsPage() {
           setName(data.display_name || user.displayName || "Player");
           setCountry(data.country || "US");
           setAvatarId(data.avatar_id || user.photoURL || "a1");
+          setFrameThemeId(data.equipped?.frame);
           setVoiceChatDisabled(data.voice_chat_disabled || false);
           setStats(data.stats || { gamesPlayed: 0, wins: 0, totalPoints: 0 });
           
@@ -52,6 +54,7 @@ function SettingsPage() {
           // Fallback if profile doesn't exist in DB yet (e.g. legacy auth)
           setName(user.displayName || "Player");
           setAvatarId(user.photoURL || "a1");
+          setFrameThemeId(undefined);
           setStats({ gamesPlayed: 0, wins: 0, totalPoints: 0 });
         }
       }
@@ -185,17 +188,15 @@ function SettingsPage() {
             {avatarId && avatarId.startsWith("data:image/") && (
               <div className="mb-4 flex flex-col items-center justify-center animate-in zoom-in slide-in-from-top-2">
                 <div className="relative group cursor-pointer" onClick={() => setAvatarId("a1")}>
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary shadow-[0_0_20px_rgba(var(--primary),0.3)]">
-                    <img src={avatarId} alt="Custom Avatar" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Avatar id={avatarId} size={96} ring="var(--primary)" frameThemeId={frameThemeId} />
+                  <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20" style={{ margin: frameThemeId ? "10px" : "0" }}>
                     <span className="text-white text-xs font-bold">Remove</span>
                   </div>
                 </div>
               </div>
             )}
             
-            <AvatarPicker value={avatarId} onChange={setAvatarId} />
+            <AvatarPicker value={avatarId} onChange={setAvatarId} frameThemeId={frameThemeId} />
           </div>
           <button onClick={save} className="btn-game w-full">{saved ? "✓ Saved" : "Save Changes"}</button>
           

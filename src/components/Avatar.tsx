@@ -46,7 +46,7 @@ export function Avatar({ id, size = 40, ring, frameThemeId }: { id: string; size
   return inner;
 }
 
-export function AvatarPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+export function AvatarPicker({ value, onChange, frameThemeId }: { value: string; onChange: (id: string) => void; frameThemeId?: string }) {
   return (
     <div className="grid grid-cols-6 gap-2">
       {AVATARS.map((a) => (
@@ -57,7 +57,7 @@ export function AvatarPicker({ value, onChange }: { value: string; onChange: (id
           className="rounded-xl p-1 transition-transform hover:scale-105"
           style={{ outline: value === a.id ? "3px solid var(--ring)" : "2px solid transparent" }}
         >
-          <Avatar id={a.id} size={48} />
+          <Avatar id={a.id} size={48} frameThemeId={value === a.id ? frameThemeId : undefined} />
         </button>
       ))}
     </div>

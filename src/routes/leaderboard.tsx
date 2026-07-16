@@ -126,7 +126,7 @@ function LeaderboardPage() {
                     <div className={`text-2xl md:text-3xl font-black w-12 text-center ${rankColors[i] || rankColors[3]}`}>
                       {p.exactRank ? `#${p.exactRank}` : (medals[i] || `#${i + 1}`)}
                     </div>
-                    <Avatar id={p.avatar_id || 'a1'} size={56} />
+                    <Avatar id={p.avatar_id || 'a1'} size={56} frameThemeId={p.equipped?.frame} />
                     <div className="flex-1">
                       <div className="font-bold text-lg md:text-xl flex items-center gap-2">
                         {p.display_name}
