@@ -1223,12 +1223,12 @@ function ChatAnimator({
   useEffect(() => {
     if (!chats) return;
     const now = Date.now();
-    const recent = Object.values(chats).filter((c) => now - c.timestamp < 5000);
+    const recent = Object.values(chats).filter((c) => now - c.timestamp < 7000);
     setActiveChats(recent);
 
     const timeout = setTimeout(() => {
-      setActiveChats((prev) => prev.filter((c) => Date.now() - c.timestamp < 5000));
-    }, 5000);
+      setActiveChats((prev) => prev.filter((c) => Date.now() - c.timestamp < 7000));
+    }, 7000);
     return () => clearTimeout(timeout);
   }, [chats]);
 
@@ -2000,7 +2000,7 @@ function OnlineMatch({
                           غير متصل
                         </div>
                       )}
-                      {room?.reactions?.[i] && Date.now() - room.reactions[i].timestamp < 4000 && (
+                      {room?.reactions?.[i] && Date.now() - room.reactions[i].timestamp < 7000 && (
                         <div className="absolute -top-4 -right-4 z-50 animate-in zoom-in spin-in-12 duration-300">
                           <div className="bg-white/10 backdrop-blur-md rounded-full p-2 border border-white/20 shadow-2xl">
                             {room.reactions[i].emoji.startsWith("lottie:") ? (
