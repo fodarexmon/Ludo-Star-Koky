@@ -1260,6 +1260,7 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
     null,
   );
   const [stage, setStage] = useState<"start" | "moving" | "done">("start");
+  const [hasLanded, setHasLanded] = useState(false);
 
   useEffect(() => {
     const COLORS = ["red", "green", "yellow", "blue"];
@@ -1300,16 +1301,22 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
       setPos({ x: endPos.x, y: endPos.y, scale: 1.2, opacity: 1 });
     }, 800);
 
-    // Fade out
+    // Landed
     const t3 = setTimeout(() => {
+      setHasLanded(true);
+    }, 2300);
+
+    // Fade out
+    const t4 = setTimeout(() => {
       setPos((prev) => (prev ? { ...prev, opacity: 0, scale: 0.8 } : null));
       setStage("done");
-    }, 3000);
+    }, 6000);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      clearTimeout(t4);
     };
   }, [chat.id, chat.senderId, chat.receiverId, players]);
 
@@ -1334,7 +1341,7 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
     >
       {chat.type === "emoji" ? (
         chat.content.startsWith("lottie:") ? (
-          <LottieEmoji hex={chat.content.split(":")[1]} size={96} />
+          <LottieEmoji hex={chat.content.split(":")[1]} size={96} autoplay={hasLanded} />
         ) : (
           <span className="text-6xl">{chat.content}</span>
         )

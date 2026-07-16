@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Lottie from "lottie-react";
 
-export function LottieEmoji({ hex, size = 64 }: { hex: string; size?: number }) {
+export function LottieEmoji({ hex, size = 64, autoplay = true }: { hex: string; size?: number; autoplay?: boolean }) {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
@@ -13,5 +13,5 @@ export function LottieEmoji({ hex, size = 64 }: { hex: string; size?: number }) 
 
   if (!data) return <div style={{ width: size, height: size }} className="animate-pulse bg-white/10 rounded-full" />;
 
-  return <Lottie animationData={data} loop={true} style={{ width: size, height: size }} />;
+  return <Lottie animationData={data} loop={true} autoplay={autoplay} style={{ width: size, height: size }} />;
 }
