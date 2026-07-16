@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { loadProfile, saveProfile } from "@/lib/profile";
-import { AvatarPicker } from "@/components/Avatar";
+import { Avatar, AvatarPicker } from "@/components/Avatar";
 import { COUNTRIES } from "@/data/countries";
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged, signOut } from "firebase/auth";
