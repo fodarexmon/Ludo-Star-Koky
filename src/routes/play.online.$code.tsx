@@ -1508,7 +1508,7 @@ function ChatMenu({
                     ))}
                   </div>
                 ) : tab === "animated_emojis" ? (
-                  <div className="grid grid-cols-4 gap-3 max-h-60 overflow-y-auto">
+                  <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-2">
                     {ALL_MY_EMOJIS.filter(e => e.startsWith("lottie:")).length > 0 ? ALL_MY_EMOJIS.filter(e => e.startsWith("lottie:")).map((e, idx) => (
                       <button
                         key={e}
@@ -1524,7 +1524,7 @@ function ChatMenu({
                     )}
                   </div>
                 ) : tab === "static_emojis" ? (
-                  <div className="grid grid-cols-4 gap-3 max-h-60 overflow-y-auto">
+                  <div className="grid grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-2">
                     {ALL_MY_EMOJIS.filter(e => !e.startsWith("lottie:")).map((e, idx) => (
                       <button
                         key={e}
