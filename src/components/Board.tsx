@@ -43,8 +43,8 @@ export const Board = memo(function Board({
   killVfx?: { active: boolean, position: number | null, color: string | null }; 
   voiceProps?: VoiceProps; 
   themeId?: string;
-  tokenThemeId?: string | string[];
-  trailThemeId?: string | string[];
+  tokenThemeId?: string | (string | undefined)[];
+  trailThemeId?: string | (string | undefined)[];
   profiles?: Record<string, any>;
 }) {
   const activeTheme = STORE_ITEMS.find((i) => i.id === themeId)?.boardTheme || STORE_ITEMS[0].boardTheme!;
