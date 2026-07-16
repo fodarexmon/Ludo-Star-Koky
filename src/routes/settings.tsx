@@ -185,16 +185,16 @@ function SettingsPage() {
               </label>
             </div>
             
-            {avatarId && avatarId.startsWith("data:image/") && (
-              <div className="mb-4 flex flex-col items-center justify-center animate-in zoom-in slide-in-from-top-2">
-                <div className="relative group cursor-pointer" onClick={() => setAvatarId("a1")}>
-                  <Avatar id={avatarId} size={96} ring="var(--primary)" frameThemeId={frameThemeId} />
+            <div className="mb-6 flex flex-col items-center justify-center animate-in zoom-in slide-in-from-top-2">
+              <div className="relative group cursor-pointer" onClick={() => avatarId?.startsWith("data:image/") && setAvatarId("a1")}>
+                <Avatar id={avatarId || "a1"} size={110} ring="var(--primary)" frameThemeId={frameThemeId} />
+                {avatarId?.startsWith("data:image/") && (
                   <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20" style={{ margin: frameThemeId ? "10px" : "0" }}>
                     <span className="text-white text-xs font-bold">Remove</span>
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
             
             <AvatarPicker value={avatarId} onChange={setAvatarId} frameThemeId={frameThemeId} />
           </div>
