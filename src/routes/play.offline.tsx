@@ -38,7 +38,7 @@ function OfflinePage() {
       .filter(Boolean) as Player[];
     if (players.length < 2) return;
     // renumber seats consecutively
-    const renum = players.map((p, i) => ({ ...p, seat: i, color: COLORS[i] }));
+    const renum = players.map((p, i) => ({ ...p, seat: i }));
     setGame(createGame(renum));
   }
 
