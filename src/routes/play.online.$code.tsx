@@ -1910,7 +1910,7 @@ function OnlineMatch({
                   id={currentPlayer.avatarId}
                   size={56}
                   ring={`var(--ludo-${currentPlayer.color})`}
-                  frameThemeId={profiles[currentPlayer.user_id]?.equipped?.frame}
+                  frameThemeId={profiles[currentPlayer.userId || ""]?.equipped?.frame}
                 />
                 <div className="flex-1">
                   <div className="font-bold">{currentPlayer.name}</div>

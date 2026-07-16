@@ -160,7 +160,6 @@ export const Board = memo(function Board({
                     <Avatar 
                       id={profiles?.[player.userId || ""]?.photoURL || player.avatarId} 
                       size={CELL * 0.75} 
-                      frameThemeId={profiles?.[player.userId || ""]?.equipped?.frame}
                     />
                     <span 
                       className="text-white font-black truncate"
