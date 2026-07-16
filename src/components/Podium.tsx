@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import type { GameState } from "@/game/types";
 import { Avatar } from "@/components/Avatar";
@@ -16,6 +16,8 @@ export function Podium({
   myFriends = new Set(),
   currentUserId,
   isHost,
+  seriesScores,
+  seriesLeaderboard,
 }: { 
   game: GameState; 
   onHome: () => void; 
@@ -27,13 +29,21 @@ export function Podium({
   myFriends?: Set<string>;
   currentUserId?: string;
   isHost?: boolean;
+  seriesScores?: Record<string, number>;
+  seriesLeaderboard?: number[];
 }) {
   const numPlayers = game.players.length;
   
+  const [viewMode, setViewMode] = useState<"match" | "series">(
+    matchCount >= 5 && seriesLeaderboard?.length ? "series" : "match"
+  );
+  
   // Calculate final ranks
-  const board = [...(game.winners || [])];
-  game.players.forEach((p, i) => { if (!board.includes(i) && !p.hasResigned) board.push(i); });
-  game.players.forEach((p, i) => { if (!board.includes(i)) board.push(i); });
+  const matchBoard = [...(game.winners || [])];
+  game.players.forEach((p, i) => { if (!matchBoard.includes(i) && !p.hasResigned) matchBoard.push(i); });
+  game.players.forEach((p, i) => { if (!matchBoard.includes(i)) matchBoard.push(i); });
+
+  const board = viewMode === "series" && seriesLeaderboard?.length ? seriesLeaderboard : matchBoard;
 
   const getPoints = (num: number, rank: number) => {
     if (num === 2) return rank === 0 ? 2 : 0;
@@ -89,11 +99,20 @@ export function Podium({
   return (
     <div className="absolute inset-0 z-[100] flex flex-col items-center justify-start bg-black/80 backdrop-blur-md animate-in fade-in duration-700 overflow-y-auto pt-8 pb-10">
       <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 mb-2 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] animate-in slide-in-from-top-10 duration-700 delay-150">
-        {matchCount >= 5 ? "Series Champion!" : "GAME OVER"}
+        {viewMode === "series" ? "Series Champion!" : "GAME OVER"}
       </h2>
-      <div className="text-gray-300 text-lg font-medium mb-6 animate-in fade-in delay-300">
-        {matchCount >= 5 ? "Final Series Standings" : `Match ${matchCount} of 5 Finished`}
+      <div className="text-gray-300 text-lg font-medium mb-2 animate-in fade-in delay-300">
+        {viewMode === "series" ? "الترتيب التراكمي النهائي للسلسلة" : `نتيجة المباراة ${matchCount} من 5`}
       </div>
+
+      {matchCount >= 5 && seriesLeaderboard?.length && (
+        <button
+          onClick={() => setViewMode(v => v === "match" ? "series" : "match")}
+          className="mb-4 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm border border-white/20 transition-colors animate-in fade-in delay-500"
+        >
+          {viewMode === "series" ? "عرض نتيجة المباراة الأخيرة" : "عرض الترتيب النهائي للسلسلة"}
+        </button>
+      )}
 
       <div className="flex items-end gap-2 md:gap-6 h-64 mt-4">
         {/* Second Place */}
@@ -103,11 +122,17 @@ export function Podium({
               <Avatar id={game.players[second].avatarId} size={64} ring={COLOR_VAR[game.players[second].color]} />
               <div className="text-white font-bold mt-2 truncate w-24 text-center">{game.players[second].name}</div>
               <div className="text-gray-300 text-sm">
-                +{getPoints(numPlayers, 1)} pts 
-                {room?.coinsEarned && game.players[second].userId && room.coinsEarned[game.players[second].userId] > 0 && (
-                  <span className="ml-1 text-yellow-400 font-bold flex items-center justify-center gap-1">
-                    +{room.coinsEarned[game.players[second].userId]} <img src="/coin.png" alt="coins" className="w-4 h-4" />
-                  </span>
+                {viewMode === "series" ? (
+                  <span className="font-bold text-yellow-300">{seriesScores?.[game.players[second].userId!] || 0} pts (إجمالي)</span>
+                ) : (
+                  <>
+                    +{getPoints(numPlayers, 1)} pts 
+                    {room?.coinsEarned && game.players[second].userId && room.coinsEarned[game.players[second].userId] > 0 && (
+                      <span className="ml-1 text-yellow-400 font-bold inline-flex items-center justify-center gap-1">
+                        +{room.coinsEarned[game.players[second].userId]} <img src="/coin.png" alt="coins" className="w-4 h-4" />
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
               {renderFriendButton(game.players[second])}
@@ -128,12 +153,18 @@ export function Podium({
             </div>
             <div className="text-yellow-400 font-black mt-2 text-lg truncate w-28 text-center">{game.players[first].name}</div>
             <div className="text-yellow-200 text-sm font-bold flex flex-col items-center">
-              +{getPoints(numPlayers, 0)} pts
-              {room?.coinsEarned && game.players[first].userId && room.coinsEarned[game.players[first].userId] > 0 && (
-                <span className="text-yellow-400 font-black flex items-center gap-1 mt-0.5">
-                  +{room.coinsEarned[game.players[first].userId]} <img src="/coin.png" alt="coins" className="w-5 h-5 drop-shadow-md" />
-                </span>
-              )}
+                {viewMode === "series" ? (
+                  <span className="font-black text-yellow-400 text-base">{seriesScores?.[game.players[first].userId!] || 0} pts (إجمالي)</span>
+                ) : (
+                  <>
+                    +{getPoints(numPlayers, 0)} pts
+                    {room?.coinsEarned && game.players[first].userId && room.coinsEarned[game.players[first].userId] > 0 && (
+                      <span className="text-yellow-400 font-black flex items-center gap-1 mt-0.5">
+                        +{room.coinsEarned[game.players[first].userId]} <img src="/coin.png" alt="coins" className="w-5 h-5 drop-shadow-md" />
+                      </span>
+                    )}
+                  </>
+                )}
             </div>
             {renderFriendButton(game.players[first])}
           </div>
@@ -150,11 +181,17 @@ export function Podium({
               <Avatar id={game.players[third].avatarId} size={64} ring={COLOR_VAR[game.players[third].color]} />
               <div className="text-white font-bold mt-2 truncate w-24 text-center">{game.players[third].name}</div>
               <div className="text-orange-300 text-sm">
-                +{getPoints(numPlayers, 2)} pts
-                {room?.coinsEarned && game.players[third].userId && room.coinsEarned[game.players[third].userId] > 0 && (
-                  <span className="ml-1 text-yellow-400 font-bold flex items-center justify-center gap-1">
-                    +{room.coinsEarned[game.players[third].userId]} <img src="/coin.png" alt="coins" className="w-4 h-4" />
-                  </span>
+                {viewMode === "series" ? (
+                  <span className="font-bold text-yellow-300">{seriesScores?.[game.players[third].userId!] || 0} pts (إجمالي)</span>
+                ) : (
+                  <>
+                    +{getPoints(numPlayers, 2)} pts
+                    {room?.coinsEarned && game.players[third].userId && room.coinsEarned[game.players[third].userId] > 0 && (
+                      <span className="ml-1 text-yellow-400 font-bold inline-flex items-center justify-center gap-1">
+                        +{room.coinsEarned[game.players[third].userId]} <img src="/coin.png" alt="coins" className="w-4 h-4" />
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
               {renderFriendButton(game.players[third])}
@@ -179,7 +216,11 @@ export function Podium({
                 <div className="flex-1 text-left">
                   <div className="font-bold leading-tight">{p.name}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    +{getPoints(numPlayers, index + 3)} pts
+                    {viewMode === "series" ? (
+                      <span className="text-yellow-400">{seriesScores?.[p.userId!] || 0} pts (إجمالي)</span>
+                    ) : (
+                      <>+{getPoints(numPlayers, index + 3)} pts</>
+                    )}
                   </div>
                 </div>
                 {renderFriendButton(p)}
