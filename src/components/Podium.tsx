@@ -34,9 +34,16 @@ export function Podium({
 }) {
   const numPlayers = game.players.length;
   
-  const [viewMode, setViewMode] = useState<"match" | "series">(
-    matchCount >= 5 && seriesLeaderboard?.length ? "series" : "match"
-  );
+  const [viewMode, setViewMode] = useState<"match" | "series">("match");
+  
+  useEffect(() => {
+    if (matchCount >= 5 && seriesLeaderboard?.length) {
+      const t = setTimeout(() => {
+        setViewMode("series");
+      }, 5000);
+      return () => clearTimeout(t);
+    }
+  }, [matchCount, seriesLeaderboard]);
   
   // Calculate final ranks
   const matchBoard = [...(game.winners || [])];
