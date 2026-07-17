@@ -203,7 +203,7 @@ export const STORE_ITEMS: StoreItem[] = [
     type: "token",
     name: "التاج الملكي",
     description: "بيدق فاخر على شكل تاج.",
-    price: 300,
+    price: 700,
     icon: "👑",
     tokenTheme: { shape: "crown" },
   },
