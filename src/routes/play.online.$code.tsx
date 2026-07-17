@@ -164,7 +164,7 @@ function RoomPage() {
         
         // Host migration
         if (r.host_id === uid) {
-          const nextHost = pl.find((p) => p.user_id !== uid && p.kind !== "ai");
+          const nextHost = pl.find((p) => p.user_id !== uid);
           if (nextHost && nextHost.user_id) {
             updates.host_id = nextHost.user_id;
           } else {
@@ -484,7 +484,7 @@ function RoomPage() {
     
     // Host migration
     if (room.host_id === userId) {
-      const nextHost = players.find(p => p.user_id !== userId && p.kind !== "ai");
+      const nextHost = players.find(p => p.user_id !== userId);
       if (nextHost && nextHost.user_id) {
         updates.host_id = nextHost.user_id;
       } else {
@@ -953,7 +953,7 @@ function RoomPage() {
                    }
                    
                    if (rData.host_id === p.user_id) {
-                     const nextHost = existingPlayers.find((op: any) => op.user_id !== p.user_id && op.kind !== "ai");
+                     const nextHost = existingPlayers.find((op: any) => op.user_id !== p.user_id);
                      if (nextHost && nextHost.user_id) {
                        updates.host_id = nextHost.user_id;
                      } else {
