@@ -1016,26 +1016,27 @@ function RoomPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.status, isHost, mySeat, code, players.length, userId]);
 
-  function copyCode() {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(code);
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = code;
-      textArea.style.position = "absolute";
-      textArea.style.left = "-999999px";
-      document.body.prepend(textArea);
-      textArea.select();
-      try {
+  async function copyCode() {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        textArea.style.position = "absolute";
+        textArea.style.left = "-999999px";
+        document.body.prepend(textArea);
+        textArea.select();
         document.execCommand("copy");
-      } catch (error) {
-        console.error("Copy failed", error);
-      } finally {
         textArea.remove();
       }
+      setCopied(true);
+      toast.success("تم نسخ الكود بنجاح!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error(e);
+      toast.error("حدث خطأ أثناء النسخ!");
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
   }
 
   if (err)
@@ -1072,16 +1073,16 @@ function RoomPage() {
 
           {!room.isQuickMatch && (
             <div className="panel mb-8 text-center bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="text-sm uppercase tracking-widest text-primary mb-2 font-semibold">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10 text-sm uppercase tracking-widest text-primary mb-2 font-semibold">
                 Your Room Code
               </div>
-              <div className="my-4 text-6xl font-mono tracking-widest text-white drop-shadow-lg font-black">
+              <div className="relative z-10 my-4 text-6xl font-mono tracking-widest text-white drop-shadow-lg font-black select-all">
                 {code}
               </div>
               <button
                 onClick={copyCode}
-                className="btn-ghost !rounded-full px-6 transition-all hover:scale-105 hover:bg-white/10"
+                className="relative z-10 btn-ghost !rounded-full px-6 transition-all hover:scale-105 hover:bg-white/10"
               >
                 {copied ? "✓ Copied to clipboard!" : "📋 Copy Code"}
               </button>
