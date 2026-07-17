@@ -25,6 +25,7 @@ export function GlobalPresence() {
 
   useEffect(() => {
     let unsubInvites: () => void;
+    let unsubFriendRequests: () => void;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -108,10 +109,73 @@ export function GlobalPresence() {
           });
         });
 
+        // Listen for incoming friend requests
+        const requestsRef = collection(db, `profiles/${user.uid}/friend_requests`);
+        unsubFriendRequests = onSnapshot(requestsRef, (snapshot) => {
+          snapshot.docChanges().forEach(async (change) => {
+            if (change.type === "added") {
+              const req = change.doc.data();
+              // Fetch sender name
+              const senderSnap = await getDoc(doc(db, "profiles", req.id));
+              const senderName = senderSnap.exists() ? senderSnap.data().display_name : "لاعب";
+              
+              toast.custom((t) => (
+                <div className="flex w-full flex-col gap-3 rounded-2xl bg-gradient-to-b from-[#1e3a8a] to-[#0f172a] p-4 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-2 border-[#10b981]">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#10b981] to-[#047857] shadow-lg text-2xl animate-bounce">
+                      👥
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">طلب صداقة!</h3>
+                      <p className="text-sm text-blue-200" style={{ lineHeight: "1.4" }}>
+                        <strong className="text-[#34d399] font-extrabold">{senderName}</strong> يريد أن يضيفك كصديق.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-1">
+                    <button 
+                      onClick={async () => {
+                        toast.dismiss(t);
+                        await setDoc(doc(db, `profiles/${user.uid}/friends`, req.id), { timestamp: Date.now() });
+                        await setDoc(doc(db, `profiles/${req.id}/friends`, user.uid), { timestamp: Date.now() });
+                        await deleteDoc(change.doc.ref);
+                        await deleteDoc(doc(db, `profiles/${req.id}/sent_requests`, user.uid));
+                        toast.success(`تمت إضافة ${senderName} إلى قائمة الأصدقاء!`);
+                      }}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 py-2 font-bold text-white shadow-lg hover:brightness-110 transition-all active:scale-95 text-sm"
+                    >
+                      ✅ قبول
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        toast.dismiss(t);
+                        await deleteDoc(change.doc.ref);
+                        await deleteDoc(doc(db, `profiles/${req.id}/sent_requests`, user.uid));
+                      }}
+                      className="flex-1 rounded-xl bg-red-600/80 hover:bg-red-600 py-2 font-bold text-white shadow-lg transition-all active:scale-95 border border-red-500 text-sm"
+                    >
+                      ❌ رفض
+                    </button>
+                    <button 
+                      onClick={() => {
+                        toast.dismiss(t);
+                      }}
+                      className="flex-1 rounded-xl bg-slate-700 py-2 font-bold text-white shadow-lg hover:bg-slate-600 transition-all active:scale-95 border border-slate-600 text-sm"
+                    >
+                      تجاهل
+                    </button>
+                  </div>
+                </div>
+              ), { duration: 15000, id: `freq-${req.id}` });
+            }
+          });
+        });
+
         // Cleanup function for interval
         return () => {
           clearInterval(intervalId);
           if (unsubInvites) unsubInvites();
+          if (unsubFriendRequests) unsubFriendRequests();
           if (unsubProfile) unsubProfile();
         };
       } else {
@@ -121,6 +185,7 @@ export function GlobalPresence() {
         }
         userIdRef.current = null;
         if (unsubInvites) unsubInvites();
+        if (unsubFriendRequests) unsubFriendRequests();
       }
     });
 

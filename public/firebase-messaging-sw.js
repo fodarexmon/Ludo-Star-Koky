@@ -20,10 +20,25 @@ messaging.onBackgroundMessage((payload) => {
   // Customize notification here
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
-    body: payload.notification.body,
+    body: payload.notification?.body || payload.data?.body,
     icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    vibrate: [200, 100, 200, 100, 200, 100, 400],
+    requireInteraction: true,
     data: payload.data, // Contains URL to open when clicked
   };
+
+  if (payload.data?.type === 'invite') {
+    notificationOptions.actions = [
+      { action: 'open', title: '✅ انضمام للعبة' },
+      { action: 'close', title: '❌ تجاهل' }
+    ];
+  } else if (payload.data?.type === 'friend_request') {
+    notificationOptions.actions = [
+      { action: 'open', title: '👥 عرض الطلبات' },
+      { action: 'close', title: '❌ تجاهل' }
+    ];
+  }
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
@@ -31,6 +46,10 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', function(event) {
   console.log('[firebase-messaging-sw.js] Notification click received.');
   event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
 
   const urlToOpen = event.notification.data?.url || '/';
 
