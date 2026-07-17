@@ -61,7 +61,7 @@ function AchievementsPage() {
           {ACHIEVEMENTS.map((ach) => {
             const isUnlocked = unlockedIds.includes(ach.id);
             const rawProgress = ach.getProgress(profile?.stats, profile);
-            const progress = Math.min(rawProgress, ach.maxProgress);
+            const progress = isUnlocked ? ach.maxProgress : Math.min(rawProgress, ach.maxProgress);
             const progressPercent = Math.round((progress / ach.maxProgress) * 100);
 
             return (
