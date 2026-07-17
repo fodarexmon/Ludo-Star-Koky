@@ -224,5 +224,8 @@ export function reconnectPlayer(state: GameState, seat: number): GameState {
   if (s.disconnected) {
     s.disconnected = s.disconnected.filter((x) => x !== seat);
   }
+  if (s.missedTurns) {
+    s.missedTurns[seat] = 0;
+  }
   return s;
 }
