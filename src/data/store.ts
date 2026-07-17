@@ -255,6 +255,15 @@ export const STORE_ITEMS: StoreItem[] = [
     frameTheme: { cssClass: "" },
   },
   {
+    id: "frame_roses",
+    type: "frame",
+    name: "إطار الورود",
+    description: "إطار مزين بألوان الورود الزاهية.",
+    price: 700,
+    icon: "🌹",
+    frameTheme: { cssClass: "frame-roses" },
+  },
+  {
     id: "frame_fire",
     type: "frame",
     name: "النار المشتعلة",
@@ -280,15 +289,6 @@ export const STORE_ITEMS: StoreItem[] = [
     price: 1200,
     icon: "🌿",
     frameTheme: { cssClass: "frame-golden-wreath" },
-  },
-  {
-    id: "frame_roses",
-    type: "frame",
-    name: "إطار الورود",
-    description: "إطار مزين بألوان الورود الزاهية.",
-    price: 700,
-    icon: "🌹",
-    frameTheme: { cssClass: "frame-roses" },
   },
 
   // Trails
@@ -316,15 +316,6 @@ export const STORE_ITEMS: StoreItem[] = [
 
   // Emojis
   {
-    id: "emoji_pack_1",
-    type: "emoji",
-    name: "حزمة الاستفزاز",
-    description: "مجموعة مشاعر استفزازية.",
-    price: 500,
-    icon: "😏",
-    emojiTheme: { emojis: ["😏", "🥱", "👎", "🤡", "EZ"] },
-  },
-  {
     id: "emoji_pack_2",
     type: "emoji",
     name: "حزمة الوحوش",
@@ -341,6 +332,15 @@ export const STORE_ITEMS: StoreItem[] = [
     price: 450,
     icon: "🐱",
     emojiTheme: { emojis: ["😺", "😹", "😻", "😼", "🙀", "😿", "😾"] },
+  },
+  {
+    id: "emoji_pack_1",
+    type: "emoji",
+    name: "حزمة الاستفزاز",
+    description: "مجموعة مشاعر استفزازية.",
+    price: 500,
+    icon: "😏",
+    emojiTheme: { emojis: ["😏", "🥱", "👎", "🤡", "EZ"] },
   },
   {
     id: "emoji_pack_animated",
