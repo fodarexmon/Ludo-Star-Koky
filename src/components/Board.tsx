@@ -373,11 +373,18 @@ export const Board = memo(function Board({
           const tokenShape = tokenShapes[seat];
           const trailClass = trailClasses[seat];
           const trailStyle = trailStyles[seat];
+          const isGhost = state.disconnected?.includes(seat);
+          
           return (
             <g key={`t-${seat}-${ti}`}
                onClick={interactive && onTokenClick ? () => onTokenClick(seat, ti) : undefined}
                className={trailClass}
-               style={{ cursor: interactive ? "pointer" : "default", transition: "transform 0.3s ease", ...trailStyle }}
+               style={{ 
+                 cursor: interactive ? "pointer" : "default", 
+                 transition: "transform 0.3s ease", 
+                 opacity: isGhost ? 0.4 : 1,
+                 ...trailStyle 
+               }}
                transform={`translate(${cx}, ${cy})`}>
               {interactive && (
                 <circle cx={0} cy={0} r={CELL * 0.55} fill="none" stroke="#fde68a" strokeWidth={3}>
