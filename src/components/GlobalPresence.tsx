@@ -67,25 +67,43 @@ export function GlobalPresence() {
           snapshot.docChanges().forEach((change) => {
             if (change.type === "added") {
               const invite = change.doc.data();
-              // Show toast
-              toast(`🎮 دعوة للعب من ${invite.fromName}!`, {
-                description: "يريد أن يلعب معك لودو الآن.",
-                duration: 10000,
-                action: {
-                  label: "قبول",
-                  onClick: async () => {
-                    // Navigate to the room
-                    await deleteDoc(change.doc.ref);
-                    nav({ to: "/play/online/$code", params: { code: invite.roomCode } });
-                  }
-                },
-                cancel: {
-                  label: "رفض",
-                  onClick: async () => {
-                    await deleteDoc(change.doc.ref);
-                  }
-                }
-              });
+              // Show premium custom toast
+              toast.custom((t) => (
+                <div className="flex w-full flex-col gap-3 rounded-2xl bg-gradient-to-b from-[#1e3a8a] to-[#0f172a] p-4 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-2 border-[#eab308]">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#eab308] to-[#ca8a04] shadow-lg text-2xl animate-bounce">
+                      🎲
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">دعوة للعب! 🎮</h3>
+                      <p className="text-sm text-blue-200" style={{ lineHeight: "1.4" }}>
+                        <strong className="text-[#fde047] font-extrabold">{invite.fromName}</strong> يدعوك للانضمام إلى غرفته لتحدي لودو الآن!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-1">
+                    <button 
+                      onClick={async () => {
+                        toast.dismiss(t);
+                        await deleteDoc(change.doc.ref);
+                        nav({ to: "/play/online/$code", params: { code: invite.roomCode } });
+                      }}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 py-2.5 font-bold text-white shadow-lg hover:brightness-110 transition-all active:scale-95"
+                    >
+                      ✅ قبول
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        toast.dismiss(t);
+                        await deleteDoc(change.doc.ref);
+                      }}
+                      className="flex-1 rounded-xl bg-slate-700 py-2.5 font-bold text-white shadow-lg hover:bg-slate-600 transition-all active:scale-95 border border-slate-600"
+                    >
+                      ❌ رفض
+                    </button>
+                  </div>
+                </div>
+              ), { duration: 15000, id: `invite-${invite.roomCode}` });
             }
           });
         });
