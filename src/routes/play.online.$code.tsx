@@ -739,6 +739,11 @@ function RoomPage() {
         delay = isHost ? 63000 : 65000 + (mySeat * 2000);
       }
       
+      const isAI = game.players[game.turn]?.kind === "ai";
+      if (isAI && isHost) {
+        delay = 10000; // AI plays after 10 seconds
+      }
+      
       if (elapsed < delay) return;
 
       timerBusyRef.current = true;
