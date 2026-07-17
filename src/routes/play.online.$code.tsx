@@ -215,6 +215,30 @@ function RoomPage() {
     };
   }, [nav]);
 
+  const fetchedFriendsRef = useRef<Set<string>>(new Set());
+  
+  useEffect(() => {
+    if (myFriends.size === 0) return;
+    const missing = Array.from(myFriends).filter(fid => !fetchedFriendsRef.current.has(fid));
+    if (missing.length === 0) return;
+    
+    missing.forEach(fid => fetchedFriendsRef.current.add(fid));
+    
+    const fetchFriends = async () => {
+      const m: Record<string, ProfileRow> = {};
+      for (let i = 0; i < missing.length; i += 30) {
+        const chunk = missing.slice(i, i + 30);
+        const q = query(collection(db, "profiles"), where("id", "in", chunk));
+        const snap = await getDocs(q);
+        snap.forEach(d => {
+           m[d.id] = d.data() as ProfileRow;
+        });
+      }
+      setProfiles(prev => ({ ...prev, ...m }));
+    };
+    fetchFriends();
+  }, [myFriends]);
+
   useEffect(() => {
     if (!userId) return;
 

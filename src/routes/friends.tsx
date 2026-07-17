@@ -16,6 +16,7 @@ function FriendsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [myProfile, setMyProfile] = useState<any>(null);
   const [friends, setFriends] = useState<any[]>([]);
+  const [selectedFriendsToInvite, setSelectedFriendsToInvite] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [addCode, setAddCode] = useState("");
   const [addMsg, setAddMsg] = useState<{ text: string, type: "err" | "success" } | null>(null);
@@ -279,8 +280,8 @@ function FriendsPage() {
     }
   };
 
-  const inviteFriend = async (friendId: string, friendName: string) => {
-    if (!userId || !myProfile) return;
+  const inviteSelectedFriends = async () => {
+    if (!userId || !myProfile || selectedFriendsToInvite.size === 0) return;
     try {
       const newRoomCode = genCode();
       const roomRef = doc(db, "rooms", newRoomCode);
@@ -295,27 +296,30 @@ function FriendsPage() {
         scores: {}
       });
       
-      // Send invite
-      await setDoc(doc(db, `profiles/${friendId}/invites`, newRoomCode), {
-        id: newRoomCode,
-        roomCode: newRoomCode,
-        fromId: userId,
-        fromName: myProfile.display_name || "Player",
-        timestamp: Date.now()
-      });
+      const fids = Array.from(selectedFriendsToInvite);
+      for (const fid of fids) {
+        // Send invite
+        await setDoc(doc(db, `profiles/${fid}/invites`, newRoomCode), {
+          id: newRoomCode,
+          roomCode: newRoomCode,
+          fromId: userId,
+          fromName: myProfile.display_name || "Player",
+          timestamp: Date.now()
+        });
 
-      // Send push notification
-      await sendPushNotification(
-        friendId,
-        "دعوة جديدة للعب! 🎲",
-        `لقد دعاك ${myProfile.display_name || "Player"} للانضمام إلى غرفته!`,
-        { type: "invite", url: `/play/online/${newRoomCode}` }
-      );
+        // Send push notification
+        await sendPushNotification(
+          fid,
+          "دعوة جديدة للعب! 🎲",
+          `لقد دعاك ${myProfile.display_name || "Player"} للانضمام إلى غرفته!`,
+          { type: "invite", url: `/play/online/${newRoomCode}` }
+        );
+      }
 
       nav({ to: "/play/online/$code", params: { code: newRoomCode } });
     } catch (e) {
       console.error(e);
-      alert("حدث خطأ أثناء إرسال الدعوة.");
+      alert("حدث خطأ أثناء إرسال الدعوات.");
     }
   };
 
@@ -454,8 +458,16 @@ function FriendsPage() {
 
             {/* Friends List */}
             <div className="panel bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl p-0 overflow-hidden">
-              <div className="p-4 bg-white/5 border-b border-white/5 font-bold text-lg">
-                قائمة الأصدقاء ({friends.length})
+              <div className="p-4 bg-white/5 border-b border-white/5 font-bold text-lg flex items-center justify-between">
+                <span>قائمة الأصدقاء ({friends.length})</span>
+                {selectedFriendsToInvite.size > 0 && (
+                  <button
+                    onClick={inviteSelectedFriends}
+                    className="btn-game py-1.5 px-4 text-sm whitespace-nowrap"
+                  >
+                    دعوة للعب ({selectedFriendsToInvite.size}) 🎮
+                  </button>
+                )}
               </div>
               
               {loading ? (
@@ -486,12 +498,33 @@ function FriendsPage() {
                           </div>
                         </div>
                         <div>
-                          <button 
-                            onClick={() => inviteFriend(friend.id, friend.display_name)}
-                            className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-4 py-2 text-sm whitespace-nowrap"
-                          >
-                            دعوة للعب 🎮
-                          </button>
+                          {selectedFriendsToInvite.has(friend.id) ? (
+                            <button 
+                              onClick={() => {
+                                const newSet = new Set(selectedFriendsToInvite);
+                                newSet.delete(friend.id);
+                                setSelectedFriendsToInvite(newSet);
+                              }}
+                              className="btn-game !bg-gradient-to-b !from-green-500 !to-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.4)] px-4 py-2 text-sm whitespace-nowrap"
+                            >
+                              ✓ تم التحديد
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => {
+                                const newSet = new Set(selectedFriendsToInvite);
+                                if (newSet.size >= 3) {
+                                  alert("يمكنك دعوة 3 لاعبين كحد أقصى");
+                                  return;
+                                }
+                                newSet.add(friend.id);
+                                setSelectedFriendsToInvite(newSet);
+                              }}
+                              className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-4 py-2 text-sm whitespace-nowrap"
+                            >
+                              + تحديد للدعوة
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
