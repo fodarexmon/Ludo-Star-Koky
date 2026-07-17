@@ -162,9 +162,14 @@ function RoomPage() {
           }
         }
         
-        // Host migration (disabled) - if host leaves, room is abandoned
+        // Host migration
         if (r.host_id === uid) {
-          updates.status = "abandoned";
+          const nextHost = pl.find((p) => p.user_id !== uid && p.kind !== "ai");
+          if (nextHost && nextHost.user_id) {
+            updates.host_id = nextHost.user_id;
+          } else {
+            updates.status = "abandoned";
+          }
         }
         
         updateDoc(doc(db, "rooms", code), updates).catch(() => {});
@@ -177,6 +182,18 @@ function RoomPage() {
       handleUnload();
     };
   }, [userId, code]);
+
+  const previousHostRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (room && room.host_id) {
+      if (previousHostRef.current && previousHostRef.current !== room.host_id) {
+        const newHostPlayer = room.players?.find((p: any) => p.user_id === room.host_id);
+        const newHostName = newHostPlayer && profiles[newHostPlayer.user_id] ? profiles[newHostPlayer.user_id].display_name : "لاعب";
+        toast.info(`غادر الهوست الغرفة وأصبح ${newHostName} الهوست الجديد`, { duration: 5000 });
+      }
+      previousHostRef.current = room.host_id;
+    }
+  }, [room?.host_id, profiles]);
 
   useEffect(() => {
     let unsubFriends: (() => void) | null = null;
@@ -444,14 +461,6 @@ function RoomPage() {
 
   async function leave() {
     if (!room || !userId) return;
-    
-    // If host leaves, abandon the room
-    if (room.host_id === userId) {
-      await updateDoc(doc(db, "rooms", code), { status: "abandoned" });
-      nav({ to: "/play/online" });
-      return;
-    }
-
     // Check if non-host leaves during unfinished Best-of-5
     const isGameOver = game && gameOver(game);
     const isBestOf5Unfinished = (room.matchCount || 1) < 5 && !room.isQuickMatch && isGameOver;
@@ -473,6 +482,18 @@ function RoomPage() {
       updates[`scores.${userId}`] = deleteField();
     }
     
+    // Host migration
+    if (room.host_id === userId) {
+      const nextHost = players.find(p => p.user_id !== userId && p.kind !== "ai");
+      if (nextHost && nextHost.user_id) {
+        updates.host_id = nextHost.user_id;
+      } else {
+        await updateDoc(doc(db, "rooms", code), { status: "abandoned" });
+        nav({ to: "/play/online" });
+        return;
+      }
+    }
+
     await updateDoc(doc(db, "rooms", code), updates);
     nav({ to: "/play/online" });
   }
@@ -932,7 +953,12 @@ function RoomPage() {
                    }
                    
                    if (rData.host_id === p.user_id) {
-                     updates.status = "abandoned";
+                     const nextHost = existingPlayers.find((op: any) => op.user_id !== p.user_id && op.kind !== "ai");
+                     if (nextHost && nextHost.user_id) {
+                       updates.host_id = nextHost.user_id;
+                     } else {
+                       updates.status = "abandoned";
+                     }
                    }
                    
                    t.update(doc(db, "rooms", code), updates);
