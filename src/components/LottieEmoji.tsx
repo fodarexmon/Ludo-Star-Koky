@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Lottie from "lottie-react";
 
 export function LottieEmoji({ hex, size = 64, autoplay = true }: { hex: string; size?: number; autoplay?: boolean }) {
   const [data, setData] = useState<any>(null);
+  const lottieRef = useRef<any>(null);
 
   useEffect(() => {
     fetch(`https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/lottie.json`)
@@ -11,7 +12,17 @@ export function LottieEmoji({ hex, size = 64, autoplay = true }: { hex: string; 
       .catch(console.error);
   }, [hex]);
 
+  useEffect(() => {
+    if (data && lottieRef.current) {
+      if (autoplay) {
+        lottieRef.current.play();
+      } else {
+        lottieRef.current.pause();
+      }
+    }
+  }, [autoplay, data]);
+
   if (!data) return <div style={{ width: size, height: size }} className="animate-pulse bg-white/10 rounded-full" />;
 
-  return <Lottie animationData={data} loop={true} autoplay={autoplay} style={{ width: size, height: size }} />;
+  return <Lottie lottieRef={lottieRef} animationData={data} loop={true} autoplay={autoplay} style={{ width: size, height: size }} />;
 }
