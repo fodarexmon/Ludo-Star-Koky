@@ -18,7 +18,7 @@ export interface DiceTheme {
 }
 
 export interface TokenTheme {
-  shape: "circle" | "crown" | "gem" | "star" | "pin";
+  shape: "circle" | "crown" | "gem" | "star" | "pin" | "disc";
 }
 
 export interface FrameTheme {
@@ -233,6 +233,15 @@ export const STORE_ITEMS: StoreItem[] = [
     price: 600,
     icon: "📍",
     tokenTheme: { shape: "pin" },
+  },
+  {
+    id: "token_disc",
+    type: "token",
+    name: "القرص",
+    description: "قرص مسطح ثلاثي الأبعاد.",
+    price: 450,
+    icon: "🔘",
+    tokenTheme: { shape: "disc" },
   },
 
   // Frames

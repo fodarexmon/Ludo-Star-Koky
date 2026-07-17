@@ -443,6 +443,12 @@ export const Board = memo(function Board({
                   <circle cx={-CELL * 0.1} cy={-CELL * 0.12} r={CELL * 0.1} fill="#fff" opacity={0.7} />
                 </>
               )}
+              {tokenShape === "disc" && (
+                <>
+                  <circle cx={CELL * 0.04} cy={CELL * 0.06} r={CELL * 0.36} fill="#000" opacity={0.4} />
+                  <circle cx={0} cy={0} r={CELL * 0.36} fill={COLOR_HEX[p.color]} />
+                </>
+              )}
             </g>
           );
         })
