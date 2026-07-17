@@ -1,15 +1,35 @@
 import { useState, useEffect, useRef } from "react";
 import Lottie from "lottie-react";
 
+const lottieCache: Record<string, any> = {};
+const inflightPromises: Record<string, Promise<any>> = {};
+
 export function LottieEmoji({ hex, size = 64, autoplay = true }: { hex: string; size?: number; autoplay?: boolean }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any>(lottieCache[hex] || null);
   const lottieRef = useRef<any>(null);
 
   useEffect(() => {
-    fetch(`https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/lottie.json`)
-      .then(res => res.json())
-      .then(setData)
-      .catch(console.error);
+    if (lottieCache[hex]) {
+      setData(lottieCache[hex]);
+      return;
+    }
+
+    if (!inflightPromises[hex]) {
+      inflightPromises[hex] = fetch(`https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/lottie.json`)
+        .then(res => res.json())
+        .then(json => {
+          lottieCache[hex] = json;
+          return json;
+        })
+        .catch(err => {
+          console.error(err);
+          delete inflightPromises[hex];
+        });
+    }
+
+    inflightPromises[hex].then(json => {
+      if (json) setData(json);
+    });
   }, [hex]);
 
   useEffect(() => {
