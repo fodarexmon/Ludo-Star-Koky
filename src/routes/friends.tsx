@@ -17,6 +17,7 @@ function FriendsPage() {
   const [myProfile, setMyProfile] = useState<any>(null);
   const [friends, setFriends] = useState<any[]>([]);
   const [selectedFriendsToInvite, setSelectedFriendsToInvite] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [addCode, setAddCode] = useState("");
   const [addMsg, setAddMsg] = useState<{ text: string, type: "err" | "success" } | null>(null);
@@ -469,6 +470,22 @@ function FriendsPage() {
                   </button>
                 )}
               </div>
+
+              {friends.length > 0 && (
+                <div className="p-3 border-b border-white/5 bg-black/20">
+                  <div className="relative">
+                    <span className="absolute inset-y-0 right-3 flex items-center text-white/50 text-xl">🔍</span>
+                    <input
+                      type="text"
+                      placeholder="ابحث عن صديق..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pr-10 pl-4 text-white placeholder-white/30 focus:outline-none focus:border-primary/50 transition-colors"
+                      dir="rtl"
+                    />
+                  </div>
+                </div>
+              )}
               
               {loading ? (
                 <div className="p-12 text-center text-muted-foreground animate-pulse">جاري تحميل الأصدقاء...</div>
@@ -476,7 +493,7 @@ function FriendsPage() {
                 <div className="p-12 text-center text-muted-foreground">لا يوجد لديك أصدقاء حالياً. قم بمشاركة كودك معهم!</div>
               ) : (
                 <div className="divide-y divide-white/5">
-                  {friends.map((friend) => {
+                  {friends.filter(f => !searchQuery || f.display_name?.toLowerCase().includes(searchQuery.toLowerCase())).map((friend) => {
                     // Consider online if lastActive is within 2 minutes
                     const isOnline = friend.isOnline && friend.lastActive && (Date.now() - friend.lastActive < 120000);
                     

@@ -124,6 +124,7 @@ function RoomPage() {
   const [myFriends, setMyFriends] = useState<Set<string>>(new Set());
   const [selectedFriendsToInvite, setSelectedFriendsToInvite] = useState<Set<string>>(new Set());
   const [rolling, setRolling] = useState(false);
+  const [inviteSearchQuery, setInviteSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rtdbGame, setRtdbGame] = useState<GameState | null>(null);
@@ -1129,8 +1130,28 @@ function RoomPage() {
                   </button>
                 )}
               </h3>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {Array.from(myFriends).map((fid) => {
+              
+              <div className="px-2">
+                <div className="relative">
+                  <span className="absolute inset-y-0 right-3 flex items-center text-white/50 text-sm">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="ابحث عن صديق..."
+                    value={inviteSearchQuery}
+                    onChange={(e) => setInviteSearchQuery(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2 pr-9 pl-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                    dir="rtl"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 overflow-x-auto pb-2 px-2">
+                {Array.from(myFriends).filter(fid => {
+                  if (!inviteSearchQuery) return true;
+                  const prof = profiles[fid];
+                  if (!prof) return false;
+                  return prof.display_name?.toLowerCase().includes(inviteSearchQuery.toLowerCase());
+                }).map((fid) => {
                   const prof = profiles[fid];
                   if (!prof) return null;
                   const isOnline = prof.isOnline && prof.lastActive && Date.now() - prof.lastActive < 120000;
