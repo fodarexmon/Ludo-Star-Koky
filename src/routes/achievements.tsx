@@ -10,6 +10,7 @@ export const Route = createFileRoute("/achievements")({
 
 function AchievementsPage() {
   const [unlockedIds, setUnlockedIds] = useState<string[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,11 +20,13 @@ function AchievementsPage() {
         unsubProfile = onSnapshot(doc(db, "profiles", user.uid), (snap) => {
           if (snap.exists()) {
             setUnlockedIds(snap.data()?.achievements || []);
+            setProfile(snap.data());
           }
           setLoading(false);
         });
       } else {
         setUnlockedIds([]);
+        setProfile(null);
         setLoading(false);
       }
     });
@@ -57,35 +60,60 @@ function AchievementsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {ACHIEVEMENTS.map((ach) => {
             const isUnlocked = unlockedIds.includes(ach.id);
+            const rawProgress = ach.getProgress(profile?.stats, profile);
+            const progress = Math.min(rawProgress, ach.maxProgress);
+            const progressPercent = Math.round((progress / ach.maxProgress) * 100);
+
             return (
               <div 
                 key={ach.id} 
-                className={`p-6 rounded-2xl flex items-center gap-6 border transition-all ${
+                className={`p-6 rounded-2xl flex flex-col gap-4 border transition-all ${
                   isUnlocked 
                     ? "bg-gradient-to-br from-white/10 to-white/5 border-yellow-500/50 shadow-[0_0_30px_rgba(251,191,36,0.15)]" 
                     : "bg-black/40 border-white/5 opacity-60 grayscale"
                 }`}
               >
-                <div className={`text-6xl ${isUnlocked ? "drop-shadow-lg" : ""}`}>
-                  {ach.icon}
+                <div className="flex items-center gap-6">
+                  <div className={`text-6xl ${isUnlocked ? "drop-shadow-lg" : ""}`}>
+                    {ach.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`text-xl font-bold ${isUnlocked ? "text-yellow-400" : "text-white/70"}`}>
+                      {ach.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {ach.description}
+                    </p>
+                    {!isUnlocked && (
+                      <div className="mt-2 text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-1">
+                        <span>🔒 مقفل</span>
+                      </div>
+                    )}
+                    {isUnlocked && (
+                      <div className="mt-2 text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-1">
+                        <span>✓ تم الإنجاز</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <h3 className={`text-xl font-bold ${isUnlocked ? "text-yellow-400" : "text-white/70"}`}>
-                    {ach.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {ach.description}
-                  </p>
-                  {!isUnlocked && (
-                    <div className="mt-3 text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-1">
-                      <span>🔒 مقفل</span>
-                    </div>
-                  )}
-                  {isUnlocked && (
-                    <div className="mt-3 text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-1">
-                      <span>✓ تم الإنجاز</span>
-                    </div>
-                  )}
+                
+                <div className="w-full mt-2">
+                  <div className="flex justify-between text-xs mb-1 font-bold">
+                    <span className="text-muted-foreground">التقدم</span>
+                    <span className={isUnlocked ? "text-yellow-400" : "text-white/50"}>
+                      {progress} / {ach.maxProgress}
+                    </span>
+                  </div>
+                  <div className="w-full bg-black/50 rounded-full h-2.5 overflow-hidden border border-white/5">
+                    <div 
+                      className={`h-2.5 rounded-full transition-all duration-1000 ${
+                        isUnlocked 
+                          ? "bg-gradient-to-r from-yellow-500 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.5)]" 
+                          : "bg-blue-500/50"
+                      }`}
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             );

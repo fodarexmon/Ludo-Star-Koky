@@ -7,6 +7,8 @@ export interface Achievement {
   icon: string;
   reward: number;
   condition: (stats: any, profile: any) => boolean;
+  getProgress: (stats: any, profile: any) => number;
+  maxProgress: number;
 }
 
 export const ACHIEVEMENTS: Achievement[] = [
@@ -17,6 +19,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🌟",
     reward: 100,
     condition: (stats) => (stats?.wins || 0) >= 1,
+    getProgress: (stats) => stats?.wins || 0,
+    maxProgress: 1,
   },
   {
     id: "shopper",
@@ -25,6 +29,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🛍️",
     reward: 100,
     condition: (stats, profile) => (profile?.inventory?.length || 0) >= 1,
+    getProgress: (stats, profile) => profile?.inventory?.length || 0,
+    maxProgress: 1,
   },
   {
     id: "fierce",
@@ -33,6 +39,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "⚔️",
     reward: 150,
     condition: (stats) => (stats?.piecesEaten || 0) >= 20,
+    getProgress: (stats) => stats?.piecesEaten || 0,
+    maxProgress: 20,
   },
   {
     id: "pro",
@@ -41,6 +49,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🎖️",
     reward: 300,
     condition: (stats) => (stats?.wins || 0) >= 10,
+    getProgress: (stats) => stats?.wins || 0,
+    maxProgress: 10,
   },
   {
     id: "crowned_king",
@@ -49,6 +59,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🛡️",
     reward: 200,
     condition: (stats) => (stats?.flawlessWins || 0) >= 1,
+    getProgress: (stats) => stats?.flawlessWins || 0,
+    maxProgress: 1,
   },
   {
     id: "outstanding",
@@ -57,6 +69,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🔥",
     reward: 250,
     condition: (stats) => (stats?.maxWinStreak || 0) >= 3,
+    getProgress: (stats) => stats?.maxWinStreak || 0,
+    maxProgress: 3,
   },
   {
     id: "the_player",
@@ -65,6 +79,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🎲",
     reward: 500,
     condition: (stats) => (stats?.gamesPlayed || 0) >= 100,
+    getProgress: (stats) => stats?.gamesPlayed || 0,
+    maxProgress: 100,
   },
   {
     id: "wealthy",
@@ -73,6 +89,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "💰",
     reward: 500,
     condition: (stats) => (stats?.totalPoints || 0) >= 1000,
+    getProgress: (stats) => stats?.totalPoints || 0,
+    maxProgress: 1000,
   },
   {
     id: "fashion_enthusiast",
@@ -81,6 +99,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "👔",
     reward: 500,
     condition: (stats, profile) => (profile?.inventory?.length || 0) >= 5,
+    getProgress: (stats, profile) => profile?.inventory?.length || 0,
+    maxProgress: 5,
   },
   {
     id: "pro_killer",
@@ -89,6 +109,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🥷",
     reward: 600,
     condition: (stats) => (stats?.piecesEaten || 0) >= 100,
+    getProgress: (stats) => stats?.piecesEaten || 0,
+    maxProgress: 100,
   },
   {
     id: "ludo_king",
@@ -97,6 +119,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "👑",
     reward: 1000,
     condition: (stats) => (stats?.wins || 0) >= 50,
+    getProgress: (stats) => stats?.wins || 0,
+    maxProgress: 50,
   },
   {
     id: "filthy_rich",
@@ -105,6 +129,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "💎",
     reward: 800,
     condition: (stats) => (stats?.coins || 0) >= 2500,
+    getProgress: (stats) => stats?.coins || 0,
+    maxProgress: 2500,
   },
   {
     id: "giant",
@@ -113,6 +139,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "👹",
     reward: 800,
     condition: (stats) => (stats?.maxWinStreak || 0) >= 5,
+    getProgress: (stats) => stats?.maxWinStreak || 0,
+    maxProgress: 5,
   },
   {
     id: "ludo_lover",
@@ -121,6 +149,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🎲",
     reward: 2000,
     condition: (stats) => (stats?.gamesPlayed || 0) >= 500,
+    getProgress: (stats) => stats?.gamesPlayed || 0,
+    maxProgress: 500,
   },
   {
     id: "untouchable",
@@ -129,6 +159,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "👼",
     reward: 1500,
     condition: (stats) => (stats?.flawlessWins || 0) >= 30,
+    getProgress: (stats) => stats?.flawlessWins || 0,
+    maxProgress: 30,
   },
   {
     id: "collector",
@@ -137,6 +169,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🏺",
     reward: 1500,
     condition: (stats, profile) => (profile?.inventory?.length || 0) >= 15,
+    getProgress: (stats, profile) => profile?.inventory?.length || 0,
+    maxProgress: 15,
   },
   {
     id: "butcher",
@@ -145,6 +179,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🪓",
     reward: 2000,
     condition: (stats) => (stats?.piecesEaten || 0) >= 500,
+    getProgress: (stats) => stats?.piecesEaten || 0,
+    maxProgress: 500,
   },
   {
     id: "winning_legend",
@@ -153,6 +189,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🐉",
     reward: 3000,
     condition: (stats) => (stats?.maxWinStreak || 0) >= 10,
+    getProgress: (stats) => stats?.maxWinStreak || 0,
+    maxProgress: 10,
   },
   {
     id: "golden_customer",
@@ -161,6 +199,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "💳",
     reward: 3000,
     condition: (stats, profile) => (profile?.inventory?.length || 0) >= STORE_ITEMS.filter(i => i.price > 0).length,
+    getProgress: (stats, profile) => profile?.inventory?.length || 0,
+    maxProgress: STORE_ITEMS.filter(i => i.price > 0).length,
   },
   {
     id: "gold_king",
@@ -169,5 +209,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     icon: "🏦",
     reward: 5000,
     condition: (stats) => (stats?.coins || 0) >= 10000,
+    getProgress: (stats) => stats?.coins || 0,
+    maxProgress: 10000,
   },
 ];
