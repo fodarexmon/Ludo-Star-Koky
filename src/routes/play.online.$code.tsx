@@ -122,6 +122,7 @@ function RoomPage() {
   const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileRow>>({});
   const [myFriends, setMyFriends] = useState<Set<string>>(new Set());
+  const [selectedFriendsToInvite, setSelectedFriendsToInvite] = useState<Set<string>>(new Set());
   const [rolling, setRolling] = useState(false);
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -1066,19 +1067,13 @@ function RoomPage() {
           {!room.isQuickMatch && isHost && myFriends.size > 0 && (
             <div className="panel space-y-3 bg-card/40 backdrop-blur-md border border-white/5 mb-8">
               <h3 className="font-semibold text-lg flex items-center justify-between">
-                <span>دعوة أصدقاء</span>
-              </h3>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {Array.from(myFriends).map((fid) => {
-                  const prof = profiles[fid];
-                  if (!prof) return null;
-                  // Online if lastActive < 2 min ago
-                  const isOnline =
-                    prof.isOnline && prof.lastActive && Date.now() - prof.lastActive < 120000;
-                  return (
-                    <button
-                      key={fid}
-                      onClick={async () => {
+                <span>دعوة أصدقاء (بحد أقصى 3)</span>
+                {selectedFriendsToInvite.size > 0 && (
+                  <button
+                    onClick={async () => {
+                      const fids = Array.from(selectedFriendsToInvite);
+                      let successCount = 0;
+                      for (const fid of fids) {
                         try {
                           await setDoc(doc(db, `profiles/${fid}/invites`, code), {
                             id: code,
@@ -1087,28 +1082,69 @@ function RoomPage() {
                             fromName: profiles[userId || ""]?.display_name || "Player",
                             timestamp: Date.now(),
                           });
-                          
                           await sendPushNotification(
                             fid,
                             "دعوة للعب! 🎲",
                             `لقد دعاك ${profiles[userId || ""]?.display_name || "لاعب"} للانضمام لغرفته!`,
                             { type: "invite", url: `/play/online/${code}` }
                           );
-
-                          toast.success(`تم إرسال الدعوة إلى ${prof.display_name}`);
+                          successCount++;
                         } catch (e) {
-                          toast.error("حدث خطأ أثناء الإرسال");
+                          console.error("Failed to invite", fid, e);
                         }
+                      }
+                      if (successCount > 0) {
+                        toast.success(`تم إرسال الدعوة إلى ${successCount} لاعبين`);
+                      }
+                      setSelectedFriendsToInvite(new Set());
+                    }}
+                    className="btn-game py-1.5 px-4 text-sm whitespace-nowrap"
+                  >
+                    إرسال ({selectedFriendsToInvite.size})
+                  </button>
+                )}
+              </h3>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {Array.from(myFriends).map((fid) => {
+                  const prof = profiles[fid];
+                  if (!prof) return null;
+                  const isOnline = prof.isOnline && prof.lastActive && Date.now() - prof.lastActive < 120000;
+                  const isSelected = selectedFriendsToInvite.has(fid);
+                  return (
+                    <button
+                      key={fid}
+                      onClick={() => {
+                        const newSet = new Set(selectedFriendsToInvite);
+                        if (isSelected) {
+                          newSet.delete(fid);
+                        } else {
+                          if (newSet.size >= 3) {
+                            toast.error("يمكنك دعوة 3 لاعبين كحد أقصى");
+                            return;
+                          }
+                          newSet.add(fid);
+                        }
+                        setSelectedFriendsToInvite(newSet);
                       }}
-                      className="flex-shrink-0 flex items-center gap-2 bg-black/40 hover:bg-white/10 border border-white/10 rounded-full px-3 py-1.5 transition-colors"
+                      className={`relative flex-shrink-0 flex items-center gap-2 border rounded-full px-3 py-1.5 transition-colors ${
+                        isSelected 
+                          ? "bg-green-500/20 border-green-500 text-green-400" 
+                          : "bg-black/40 hover:bg-white/10 border-white/10"
+                      }`}
                     >
                       <Avatar id={prof.avatar_id} size={24} />
                       <span className="text-sm font-medium whitespace-nowrap">
                         {prof.display_name}
                       </span>
-                      <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full">
-                        دعوة
-                      </span>
+                      {isSelected ? (
+                        <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
+                          ✓
+                        </span>
+                      ) : (
+                        <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full">
+                          + تحديد
+                        </span>
+                      )}
                     </button>
                   );
                 })}
