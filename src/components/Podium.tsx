@@ -4,6 +4,7 @@ import type { GameState } from "@/game/types";
 import { Avatar } from "@/components/Avatar";
 import { COLOR_VAR } from "@/game/constants";
 import { Button } from "@/components/ui/button";
+import { playMatchWinSound } from "@/lib/audio";
 
 export function Podium({ 
   game, 
@@ -60,6 +61,7 @@ export function Podium({
   };
 
   useEffect(() => {
+    playMatchWinSound();
     // Fire confetti from both sides
     const duration = 5 * 1000;
     const end = Date.now() + duration;

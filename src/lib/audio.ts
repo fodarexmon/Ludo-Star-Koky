@@ -107,3 +107,24 @@ export function playSafeSound() {
   playTone(880, 'sine', 0.1, 0.8); // A5
   setTimeout(() => playTone(1108.73, 'sine', 0.2, 0.8), 100); // C#6
 }
+
+export function playCoinSound() {
+  // High-pitched bright chime for buying/coins
+  playTone(1200, 'sine', 0.1, 0.5);
+  setTimeout(() => playTone(1600, 'sine', 0.2, 0.5), 100);
+}
+
+export function playEquipSound() {
+  // Quick pop/click sound for equipping items
+  playTone(400, 'square', 0.05, 0.3);
+  setTimeout(() => playTone(600, 'sine', 0.05, 0.4), 50);
+}
+
+export function playMatchWinSound() {
+  // Grand victory fanfare (doesn't interrupt, just mixes in)
+  // C major arpeggio going up
+  playTone(523.25, 'triangle', 0.2, 0.8); // C5
+  setTimeout(() => playTone(659.25, 'triangle', 0.2, 0.8), 150); // E5
+  setTimeout(() => playTone(783.99, 'triangle', 0.2, 0.8), 300); // G5
+  setTimeout(() => playTone(1046.50, 'triangle', 0.6, 0.8), 450); // C6
+}

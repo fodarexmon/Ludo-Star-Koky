@@ -7,6 +7,7 @@ import { STORE_ITEMS, type ItemType, type StoreItem } from "@/data/store";
 import { Dice } from "@/components/Dice";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { playCoinSound, playEquipSound } from "@/lib/audio";
 
 export const Route = createFileRoute("/store")({
   component: StorePage,
@@ -140,6 +141,7 @@ function StorePage() {
         "stats.coins": increment(-item.price),
         inventory: arrayUnion(item.id),
       });
+      playCoinSound();
       toast.success(`تم شراء ${item.name} بنجاح! 🎉`);
     } catch (e) {
       console.error(e);
@@ -153,6 +155,7 @@ function StorePage() {
       await updateDoc(doc(db, "profiles", auth.currentUser.uid), {
         [`equipped.${item.type}`]: item.id,
       });
+      playEquipSound();
       toast.success(`تم تجهيز ${item.name} بنجاح!`);
     } catch (e) {
       console.error(e);
