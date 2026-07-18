@@ -65,6 +65,7 @@ export const Board = memo(function Board({
   const prevPositions = useRef<Record<string, number>>({});
   const [smokeParticles, setSmokeParticles] = useState<{ id: string, cx: number, cy: number, theme: string }[]>([]);
   const [isAnimating, setIsAnimating] = useState<Record<string, boolean>>({});
+  const animatingTimeouts = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const newParticles: { id: string, cx: number, cy: number, theme: string }[] = [];
@@ -87,7 +88,10 @@ export const Board = memo(function Board({
           if (oldPos !== undefined && oldPos !== pos && oldPos > 0 && oldPos < 57) {
             // Token is moving!
             setIsAnimating(prev => ({ ...prev, [key]: true }));
-            setTimeout(() => {
+            if (animatingTimeouts.current[key]) {
+              window.clearTimeout(animatingTimeouts.current[key]);
+            }
+            animatingTimeouts.current[key] = window.setTimeout(() => {
               setIsAnimating(prev => ({ ...prev, [key]: false }));
             }, 300);
 

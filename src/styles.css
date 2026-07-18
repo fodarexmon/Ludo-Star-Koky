@@ -310,4 +310,4 @@
   50% { transform: translateY(-30px) scaleY(1.1); } /* stretch and jump */
   75% { transform: translateY(-10px) scaleY(1); }
 }
-.trail-jump { animation: trailJump 0.4s infinite; }
+.trail-jump { animation: trailJump 0.25s infinite; }
