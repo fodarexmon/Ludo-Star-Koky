@@ -123,7 +123,7 @@ export function Podium({
         </button>
       )}
 
-      <div className="flex items-end gap-2 md:gap-6 h-64 mt-4">
+      <div className="flex items-end gap-2 md:gap-6 h-80 mt-16 md:mt-20">
         {/* Second Place */}
         {second !== undefined && (
           <div className="flex flex-col items-center animate-in slide-in-from-bottom-24 duration-700 delay-500">
