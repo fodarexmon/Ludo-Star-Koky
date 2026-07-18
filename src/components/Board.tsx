@@ -67,7 +67,7 @@ export const Board = memo(function Board({
   const [isAnimating, setIsAnimating] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const newParticles: { id: string, cx: number, cy: number }[] = [];
+    const newParticles: { id: string, cx: number, cy: number, theme: string }[] = [];
     
     Object.entries(state.tokens).forEach(([seatStr, playerTokens]) => {
       const seat = parseInt(seatStr);
