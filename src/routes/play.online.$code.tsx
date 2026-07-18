@@ -1993,6 +1993,8 @@ function OnlineMatch({
           isHost={isHost}
           onNextMatch={nextMatch}
           currentUserId={userId || undefined}
+          seriesLeaderboard={leaderboard}
+          seriesScores={room.scores || {}}
           myFriends={myFriends}
           onAddFriend={async (friendId, friendName) => {
             if (!userId || !friendId) return;
