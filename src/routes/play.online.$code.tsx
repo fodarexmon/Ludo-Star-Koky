@@ -1327,10 +1327,12 @@ function RoomPage() {
 function ChatAnimator({
   chats,
   players,
+  gamePlayers,
   profiles,
 }: {
   chats: Record<string, ChatMessage> | undefined;
   players: any[];
+  gamePlayers: Player[] | undefined;
   profiles: any;
 }) {
   const [activeChats, setActiveChats] = useState<ChatMessage[]>([]);
@@ -1351,7 +1353,7 @@ function ChatAnimator({
     <>
       {activeChats.flatMap((chat) => {
         if (chat.receiverId) {
-          return [<AnimatedMessage key={chat.id} chat={chat} players={players} />];
+          return [<AnimatedMessage key={chat.id} chat={chat} players={players} gamePlayers={gamePlayers} />];
         } else {
           // Send to everyone except sender
           const opponents = players.filter(p => p.user_id !== chat.senderId);
@@ -1360,6 +1362,7 @@ function ChatAnimator({
               key={`${chat.id}-${opp.user_id}`} 
               chat={{...chat, receiverId: opp.user_id}} 
               players={players} 
+              gamePlayers={gamePlayers}
             />
           ));
         }
@@ -1368,7 +1371,7 @@ function ChatAnimator({
   );
 }
 
-function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] }) {
+function AnimatedMessage({ chat, players, gamePlayers }: { chat: ChatMessage; players: any[], gamePlayers: Player[] | undefined }) {
   const [pos, setPos] = useState<{ x: number; y: number; scale: number; opacity: number } | null>(
     null,
   );
@@ -1377,13 +1380,16 @@ function AnimatedMessage({ chat, players }: { chat: ChatMessage; players: any[] 
 
   useEffect(() => {
     const COLORS = ["red", "green", "yellow", "blue"];
+    const senderInGame = gamePlayers?.find(p => p.userId === chat.senderId);
+    const receiverInGame = chat.receiverId ? gamePlayers?.find(p => p.userId === chat.receiverId) : undefined;
+
     const senderSeat = players.find((p) => p.user_id === chat.senderId)?.seat;
     const receiverSeat = chat.receiverId
       ? players.find((p) => p.user_id === chat.receiverId)?.seat
       : undefined;
 
-    const senderColor = senderSeat !== undefined ? COLORS[senderSeat] : undefined;
-    const receiverColor = receiverSeat !== undefined ? COLORS[receiverSeat] : undefined;
+    const senderColor = senderInGame ? senderInGame.color : (senderSeat !== undefined ? COLORS[senderSeat] : undefined);
+    const receiverColor = receiverInGame ? receiverInGame.color : (receiverSeat !== undefined ? COLORS[receiverSeat] : undefined);
 
     const senderEl = document.getElementById(senderColor ? `base-${senderColor}` : "board-center");
     const receiverEl = receiverColor
@@ -1975,7 +1981,7 @@ function OnlineMatch({
       {Object.entries(remoteStreams).map(([pid, stream]) => (
         <AudioPlayer key={pid} stream={stream} muted={!!localRemoteMuted[pid]} />
       ))}
-      <ChatAnimator chats={room.chats} players={room.players || []} profiles={profiles} />
+      <ChatAnimator chats={room.chats} players={room.players || []} gamePlayers={displayGame?.players} profiles={profiles} />
       <ChatMenu
         room={room}
         userId={userId}
