@@ -378,14 +378,13 @@ export const Board = memo(function Board({
           return (
             <g key={`t-${seat}-${ti}`}
                onClick={interactive && onTokenClick ? () => onTokenClick(seat, ti) : undefined}
-               className={trailClass}
                style={{ 
                  cursor: interactive ? "pointer" : "default", 
                  transition: "transform 0.3s ease", 
                  opacity: isGhost ? 0.4 : 1,
-                 ...trailStyle 
                }}
                transform={`translate(${cx}, ${cy})`}>
+              <g className={trailClass} style={trailStyle}>
               {interactive && (
                 <circle cx={0} cy={0} r={CELL * 0.55} fill="none" stroke="#fde68a" strokeWidth={3}>
                   <animate attributeName="r" values={`${CELL * 0.45};${CELL * 0.6};${CELL * 0.45}`} dur="1.2s" repeatCount="indefinite" />
@@ -449,6 +448,7 @@ export const Board = memo(function Board({
                   <circle cx={0} cy={0} r={CELL * 0.36} fill={COLOR_HEX[p.color]} />
                 </>
               )}
+              </g>
             </g>
           );
         })

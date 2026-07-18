@@ -238,3 +238,76 @@
 .animate-kill-vfx {
   animation: kill-explosion 0.5s ease-out forwards;
 }
+
+/* PAWN TRAILS & EFFECTS */
+
+/* 1. Fire */
+@keyframes trailFire {
+  0%, 100% { filter: drop-shadow(0 4px 6px red) drop-shadow(0 -4px 10px orange); }
+  50% { filter: drop-shadow(0 6px 12px darkred) drop-shadow(0 -8px 15px yellow); }
+}
+.trail-fire { animation: trailFire 0.4s infinite alternate ease-in-out; }
+
+/* 2. Lightning */
+@keyframes trailLightning {
+  0%, 100% { filter: drop-shadow(0 0 2px cyan) drop-shadow(0 0 5px blue); transform: scale(1); }
+  25% { filter: drop-shadow(0 0 10px cyan) drop-shadow(0 0 20px white); transform: scale(1.05) skewX(2deg); }
+  50% { filter: drop-shadow(0 0 2px cyan); transform: scale(1) skewX(-2deg); }
+  75% { filter: drop-shadow(0 0 15px white) drop-shadow(0 0 25px cyan); transform: scale(1.1); }
+}
+.trail-lightning { animation: trailLightning 0.2s infinite; }
+
+/* 3. Ice */
+@keyframes trailIce {
+  0%, 100% { filter: drop-shadow(0 0 8px lightblue) drop-shadow(0 5px 15px white); }
+  50% { filter: drop-shadow(0 0 15px cyan) drop-shadow(0 8px 20px rgba(255,255,255,0.8)); }
+}
+.trail-ice { animation: trailIce 1.5s infinite alternate ease-in-out; }
+
+/* 4. Hearts */
+@keyframes trailHearts {
+  0% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 -10px 5px pink) drop-shadow(5px -15px 8px hotpink); }
+  100% { filter: drop-shadow(0 -20px 10px rgba(255,105,180,0)); }
+}
+.trail-hearts { animation: trailHearts 0.8s infinite ease-out; }
+
+/* 5. Stars */
+@keyframes trailStars {
+  0% { filter: drop-shadow(0 0 2px gold); }
+  33% { filter: drop-shadow(-8px 5px 4px yellow) drop-shadow(8px -5px 6px white); }
+  66% { filter: drop-shadow(8px 8px 4px yellow) drop-shadow(-5px -8px 6px gold); }
+  100% { filter: drop-shadow(0 0 2px gold); }
+}
+.trail-stars { animation: trailStars 0.6s infinite linear; }
+
+/* 6. Footprints */
+@keyframes trailFootprints {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 15px 2px rgba(0,0,0,0.4)) drop-shadow(0 25px 2px rgba(0,0,0,0.2)); }
+}
+.trail-footprints { animation: trailFootprints 0.4s infinite ease-in-out; }
+
+/* 7. Ghost */
+@keyframes trailGhost {
+  0%, 100% { opacity: 0.8; filter: blur(0px) drop-shadow(0 0 0 transparent); }
+  50% { opacity: 0.5; filter: blur(2px) drop-shadow(-10px 0 5px rgba(255,255,255,0.4)); }
+}
+.trail-ghost { animation: trailGhost 0.5s infinite alternate linear; }
+
+/* 8. Confetti */
+@keyframes trailConfetti {
+  0% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(10px -10px 3px red) drop-shadow(-10px -15px 3px blue) drop-shadow(0 -20px 3px green) drop-shadow(15px 0 3px yellow); }
+  100% { filter: drop-shadow(20px -5px 0 transparent) drop-shadow(-20px -25px 0 transparent); }
+}
+.trail-confetti { animation: trailConfetti 0.6s infinite ease-out; }
+
+/* 9. Jump */
+@keyframes trailJump {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  25% { transform: translateY(5px) scaleY(0.8); } /* squash */
+  50% { transform: translateY(-30px) scaleY(1.1); } /* stretch and jump */
+  75% { transform: translateY(-10px) scaleY(1); }
+}
+.trail-jump { animation: trailJump 0.4s infinite; }
