@@ -63,7 +63,8 @@ export const Board = memo(function Board({
 
 
   const prevPositions = useRef<Record<string, number>>({});
-  const [smokeParticles, setSmokeParticles] = useState<{ id: string, cx: number, cy: number }[]>([]);
+  const [smokeParticles, setSmokeParticles] = useState<{ id: string, cx: number, cy: number, theme: string }[]>([]);
+  const [isAnimating, setIsAnimating] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const newParticles: { id: string, cx: number, cy: number }[] = [];
@@ -77,21 +78,31 @@ export const Board = memo(function Board({
       // We should check the original trailThemeId!
       const currentThemeId = Array.isArray(trailThemeId) ? trailThemeId[seat] : trailThemeId;
       
-      if (currentThemeId === 'trail_glow') {
+      if (currentThemeId && currentThemeId !== 'trail_default') {
         const pColor = state.players[seat].color;
         playerTokens.forEach((pos: number, ti: number) => {
           const key = `${seat}-${ti}`;
           const oldPos = prevPositions.current[key];
           
           if (oldPos !== undefined && oldPos !== pos && oldPos > 0 && oldPos < 57) {
-            const cell = cellFor(pColor, oldPos);
-            if (cell) {
-              const [col, row] = cell;
-              newParticles.push({
-                id: `${key}-${Date.now()}-${Math.random()}`,
-                cx: (col + 0.5) * CELL,
-                cy: (row + 0.5) * CELL,
-              });
+            // Token is moving!
+            setIsAnimating(prev => ({ ...prev, [key]: true }));
+            setTimeout(() => {
+              setIsAnimating(prev => ({ ...prev, [key]: false }));
+            }, 300);
+
+            // Spawn particles if not just a jump trail
+            if (currentThemeId !== 'trail_jump') {
+              const cell = cellFor(pColor, oldPos);
+              if (cell) {
+                const [col, row] = cell;
+                newParticles.push({
+                  id: `${key}-${Date.now()}-${Math.random()}`,
+                  cx: (col + 0.5) * CELL,
+                  cy: (row + 0.5) * CELL,
+                  theme: currentThemeId
+                });
+              }
             }
           }
           prevPositions.current[key] = pos;
@@ -307,13 +318,40 @@ export const Board = memo(function Board({
       </g>
 
       {/* Smoke particles */}
-      {smokeParticles.map(p => (
-        <g key={p.id} className="smoke-particle" style={{ pointerEvents: 'none' }}>
-          <circle cx={p.cx - 6} cy={p.cy} r={18} fill="#ff0000" opacity={0.7} filter="url(#smoke-blur)" />
-          <circle cx={p.cx + 6} cy={p.cy} r={18} fill="#00ffff" opacity={0.7} filter="url(#smoke-blur)" />
-          <circle cx={p.cx} cy={p.cy - 4} r={14} fill="#ffffff" opacity={0.9} filter="url(#smoke-blur)" />
-        </g>
-      ))}
+      {smokeParticles.map(p => {
+        if (p.theme === 'trail_fire') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none' }}>🔥</text>;
+        }
+        if (p.theme === 'trail_ice') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none' }}>❄️</text>;
+        }
+        if (p.theme === 'trail_hearts') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none' }}>💖</text>;
+        }
+        if (p.theme === 'trail_stars') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none' }}>🌠</text>;
+        }
+        if (p.theme === 'trail_footprints') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none', opacity: 0.5 }}>🐾</text>;
+        }
+        if (p.theme === 'trail_ghost') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none', filter: "blur(1px)" }}>👻</text>;
+        }
+        if (p.theme === 'trail_confetti') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none' }}>🎊</text>;
+        }
+        if (p.theme === 'trail_lightning') {
+          return <text key={p.id} x={p.cx} y={p.cy + 4} fontSize={CELL * 0.8} textAnchor="middle" className="smoke-particle" style={{ pointerEvents: 'none' }}>⚡</text>;
+        }
+        // Default (trail_glow or others)
+        return (
+          <g key={p.id} className="smoke-particle" style={{ pointerEvents: 'none' }}>
+            <circle cx={p.cx - 6} cy={p.cy} r={18} fill="#ff0000" opacity={0.7} filter="url(#smoke-blur)" />
+            <circle cx={p.cx + 6} cy={p.cy} r={18} fill="#00ffff" opacity={0.7} filter="url(#smoke-blur)" />
+            <circle cx={p.cx} cy={p.cy - 4} r={14} fill="#ffffff" opacity={0.9} filter="url(#smoke-blur)" />
+          </g>
+        );
+      })}
 
       {/* Tokens */}
       {state.players.map((p, seat) =>
@@ -374,6 +412,8 @@ export const Board = memo(function Board({
           const trailClass = trailClasses[seat];
           const trailStyle = trailStyles[seat];
           const isGhost = state.disconnected?.includes(seat);
+          const tokenKey = `${seat}-${ti}`;
+          const isAnimatingThisToken = isAnimating[tokenKey];
           
           return (
             <g key={`t-${seat}-${ti}`}
@@ -384,7 +424,7 @@ export const Board = memo(function Board({
                  opacity: isGhost ? 0.4 : 1,
                }}
                transform={`translate(${cx}, ${cy})`}>
-              <g className={trailClass} style={trailStyle}>
+              <g className={isAnimatingThisToken ? trailClass : ""} style={isAnimatingThisToken ? trailStyle : {}}>
               {interactive && (
                 <circle cx={0} cy={0} r={CELL * 0.55} fill="none" stroke="#fde68a" strokeWidth={3}>
                   <animate attributeName="r" values={`${CELL * 0.45};${CELL * 0.6};${CELL * 0.45}`} dur="1.2s" repeatCount="indefinite" />
