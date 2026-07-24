@@ -156,19 +156,19 @@ function InstructionsPage() {
                   <ul className="space-y-2 text-sm">
                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-yellow-400 font-bold">المركز الأول 🥇</span>
-                      <span>5 نقاط | 100 🪙</span>
+                      <span className="flex items-center gap-1">5 نقاط | 100 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-gray-300 font-bold">المركز الثاني 🥈</span>
-                      <span>3 نقاط | 50 🪙</span>
+                      <span className="flex items-center gap-1">3 نقاط | 50 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-amber-600 font-bold">المركز الثالث 🥉</span>
-                      <span>1 نقطة | 30 🪙</span>
+                      <span className="flex items-center gap-1">1 نقطة | 30 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                     <li className="flex justify-between items-center text-muted-foreground pt-1">
                       <span>المركز الرابع 😢</span>
-                      <span>0 نقاط | 10 🪙</span>
+                      <span className="flex items-center gap-1">0 نقاط | 10 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                   </ul>
                 </div>
@@ -178,15 +178,15 @@ function InstructionsPage() {
                   <ul className="space-y-2 text-sm">
                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-yellow-400 font-bold">المركز الأول 🥇</span>
-                      <span>3 نقاط | 100 🪙</span>
+                      <span className="flex items-center gap-1">3 نقاط | 100 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-gray-300 font-bold">المركز الثاني 🥈</span>
-                      <span>1 نقطة | 50 🪙</span>
+                      <span className="flex items-center gap-1">1 نقطة | 50 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                     <li className="flex justify-between items-center text-muted-foreground pt-1">
                       <span>المركز الثالث 😢</span>
-                      <span>0 نقاط | 20 🪙</span>
+                      <span className="flex items-center gap-1">0 نقاط | 20 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                   </ul>
                 </div>
@@ -196,11 +196,11 @@ function InstructionsPage() {
                   <ul className="space-y-2 text-sm">
                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
                       <span className="text-yellow-400 font-bold">المركز الأول 🥇</span>
-                      <span>2 نقاط | 100 🪙</span>
+                      <span className="flex items-center gap-1">2 نقاط | 100 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                     <li className="flex justify-between items-center text-muted-foreground pt-1">
                       <span>المركز الثاني 😢</span>
-                      <span>0 نقاط | 20 🪙</span>
+                      <span className="flex items-center gap-1">0 نقاط | 20 <img src="/coin.png" alt="Coin" className="w-4 h-4" /></span>
                     </li>
                   </ul>
                 </div>
