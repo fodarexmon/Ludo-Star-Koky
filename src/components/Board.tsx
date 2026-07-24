@@ -46,6 +46,7 @@ export const Board = memo(function Board({
   tokenThemeId?: string | (string | undefined)[];
   trailThemeId?: string | (string | undefined)[];
   profiles?: Record<string, any>;
+  hostId?: string;
 }) {
   const activeTheme = STORE_ITEMS.find((i) => i.id === themeId)?.boardTheme || STORE_ITEMS[0].boardTheme!;
   
@@ -177,13 +178,14 @@ export const Board = memo(function Board({
                       size={CELL * 0.75} 
                     />
                     <span 
-                      className="text-white font-black truncate"
+                      className="text-white font-black truncate flex items-center gap-1"
                       style={{ 
                         fontSize: CELL * 0.6,
                         WebkitTextStroke: "1px black",
                         textShadow: "0 2px 4px rgba(0,0,0,0.5)"
                       }}
                     >
+                      {hostId && player.userId === hostId && <span className="text-yellow-400" title="المضيف" style={{ fontSize: CELL * 0.6, WebkitTextStroke: "0" }}>👑</span>}
                       {player.name}
                     </span>
                   </div>

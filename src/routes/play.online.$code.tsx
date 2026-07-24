@@ -2042,6 +2042,7 @@ function OnlineMatch({
               tokenThemeId={displayGame.players.map((p: any) => profiles[p.userId || ""]?.equipped?.token)}
               trailThemeId={displayGame.players.map((p: any) => profiles[p.userId || ""]?.equipped?.trail)}
               profiles={profiles}
+              hostId={room.host_id}
               onTokenClick={myTurn && !isAnimating ? doMove : undefined}
               killVfx={killVfx}
               voiceProps={voiceChatDisabled ? { voiceChatDisabled: true } : {
