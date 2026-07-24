@@ -24,7 +24,6 @@ import { Board } from "@/components/Board";
 import { Dice } from "@/components/Dice";
 import { PlayerCard } from "@/components/PlayerCard";
 import { Avatar } from "@/components/Avatar";
-import { ScoringInfoModal } from "@/components/ScoringInfoModal";
 import { STORE_ITEMS } from "@/data/store";
 import { COLORS, FINISHED, type Color } from "@/game/constants";
 import {
@@ -1790,7 +1789,6 @@ function OnlineMatch({
   const voiceChatDisabled = loadProfile().voiceChatDisabled;
 
   const [localRemoteMuted, setLocalRemoteMuted] = useState<Record<string, boolean>>({});
-  const [showScoringInfo, setShowScoringInfo] = useState(false);
 
   const {
     localStream,
@@ -2028,10 +2026,9 @@ function OnlineMatch({
           <button onClick={leave} className="btn-ghost">
             ← Leave
           </button>
-          <span className="text-sm text-muted-foreground font-medium flex items-center gap-2">
+          <span className="text-sm text-muted-foreground font-medium">
             Match {room.matchCount || 1} of 5 &nbsp;·&nbsp; Room{" "}
             <span className="font-mono">{code}</span>
-            <button onClick={() => setShowScoringInfo(true)} className="p-1 hover:bg-white/10 rounded-full transition-colors flex items-center justify-center" title="نظام النقاط والنقود">ℹ️</button>
           </span>
           <Link to="/" className="btn-ghost">
             Home
@@ -2315,7 +2312,6 @@ function OnlineMatch({
           </div>
         )}
       </div>
-      <ScoringInfoModal isOpen={showScoringInfo} onClose={() => setShowScoringInfo(false)} />
     </div>
   );
 }

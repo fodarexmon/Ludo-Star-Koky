@@ -140,7 +140,75 @@ function InstructionsPage() {
             </div>
           </section>
 
-          {/* Section 6: Punishments & Fair Play */}
+          {/* Section 6: Scoring & Coins */}
+          <section className="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-sm">
+            <h2 className="text-2xl font-bold text-amber-400 mb-6 flex items-center gap-3">
+              <span className="text-3xl">🏆</span> نظام النقاط والنقود
+            </h2>
+            <div className="space-y-6">
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                في وضع الأونلاين (Best of 5)، تتكون السلسلة من 5 مباريات متتالية. في نهاية كل مباراة، يتم توزيع النقاط والعملات الذهبية على اللاعبين حسب مركزهم وعدد اللاعبين في الغرفة. تتراكم النقاط لتحديد الفائز ببطولة السلسلة في النهاية.
+              </p>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                  <h4 className="font-bold text-lg mb-3 text-blue-400">غرفة 4 لاعبين 👥</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex justify-between items-center border-b border-white/5 pb-2">
+                      <span className="text-yellow-400 font-bold">المركز الأول 🥇</span>
+                      <span>5 نقاط | 100 🪙</span>
+                    </li>
+                    <li className="flex justify-between items-center border-b border-white/5 pb-2">
+                      <span className="text-gray-300 font-bold">المركز الثاني 🥈</span>
+                      <span>3 نقاط | 50 🪙</span>
+                    </li>
+                    <li className="flex justify-between items-center border-b border-white/5 pb-2">
+                      <span className="text-amber-600 font-bold">المركز الثالث 🥉</span>
+                      <span>1 نقطة | 30 🪙</span>
+                    </li>
+                    <li className="flex justify-between items-center text-muted-foreground pt-1">
+                      <span>المركز الرابع 😢</span>
+                      <span>0 نقاط | 10 🪙</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                  <h4 className="font-bold text-lg mb-3 text-green-400">غرفة 3 لاعبين 👥</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex justify-between items-center border-b border-white/5 pb-2">
+                      <span className="text-yellow-400 font-bold">المركز الأول 🥇</span>
+                      <span>3 نقاط | 100 🪙</span>
+                    </li>
+                    <li className="flex justify-between items-center border-b border-white/5 pb-2">
+                      <span className="text-gray-300 font-bold">المركز الثاني 🥈</span>
+                      <span>1 نقطة | 50 🪙</span>
+                    </li>
+                    <li className="flex justify-between items-center text-muted-foreground pt-1">
+                      <span>المركز الثالث 😢</span>
+                      <span>0 نقاط | 20 🪙</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="bg-black/40 p-4 rounded-xl border border-white/5 md:col-span-2">
+                  <h4 className="font-bold text-lg mb-3 text-purple-400">غرفة لاعبين فقط 👥</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex justify-between items-center border-b border-white/5 pb-2">
+                      <span className="text-yellow-400 font-bold">المركز الأول 🥇</span>
+                      <span>2 نقاط | 100 🪙</span>
+                    </li>
+                    <li className="flex justify-between items-center text-muted-foreground pt-1">
+                      <span>المركز الثاني 😢</span>
+                      <span>0 نقاط | 20 🪙</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 7: Punishments & Fair Play */}
           <section className="bg-black/60 border border-destructive/30 rounded-3xl p-6 md:p-8 backdrop-blur-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-destructive to-transparent" />
             <h2 className="text-2xl font-bold text-destructive mb-6 flex items-center gap-3">
@@ -162,7 +230,7 @@ function InstructionsPage() {
             </div>
           </section>
           
-          {/* Section 7: Achievements */}
+          {/* Section 8: Achievements */}
           <section className="bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-sm text-center">
             <div className="text-5xl mb-4">🏆</div>
             <h2 className="text-2xl font-bold text-white mb-2">
