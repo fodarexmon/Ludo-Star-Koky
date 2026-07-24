@@ -1832,6 +1832,7 @@ function OnlineMatch({
   const canRoll =
     myTurn && !game.dice && !game.awaitingMove && !isAnimating && !isGameOver && !rolling && !isWaitingForServer;
   const [showResignConfirm, setShowResignConfirm] = useState(false);
+  const [showKickConfirm, setShowKickConfirm] = useState<number | null>(null);
 
   const myEquipped = profiles[userId]?.equipped || { board: "board_default", dice: "dice_default" };
   const myEquippedEmojiId = myEquipped.emoji;
@@ -2164,7 +2165,7 @@ function OnlineMatch({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onKick(i);
+                            setShowKickConfirm(i);
                           }}
                           className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-destructive/10 text-destructive text-xs font-bold rounded hover:bg-destructive/20 border border-destructive/30"
                           title="طرد اللاعب"
@@ -2275,6 +2276,36 @@ function OnlineMatch({
                   className="btn-game bg-destructive/80 hover:bg-destructive flex-1 py-3 text-sm"
                 >
                   نعم، انسحب
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showKickConfirm !== null && (
+          <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-4 animate-in fade-in backdrop-blur-sm">
+            <div className="panel max-w-sm w-full text-center shadow-2xl border border-destructive/50 bg-black/95">
+              <div className="mb-4 text-5xl">⚠️</div>
+              <h2 className="text-xl font-bold mb-2">هل أنت متأكد من طرد هذا اللاعب؟</h2>
+              <p className="mb-6 text-sm text-destructive font-bold bg-destructive/10 p-3 rounded-lg border border-destructive/20">
+                لن يتمكن هذا اللاعب من العودة لهذه الغرفة مرة أخرى.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowKickConfirm(null)}
+                  className="btn-ghost flex-1 py-3 text-sm"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={() => {
+                    const target = showKickConfirm;
+                    setShowKickConfirm(null);
+                    onKick(target);
+                  }}
+                  className="btn-game bg-destructive/80 hover:bg-destructive flex-1 py-3 text-sm"
+                >
+                  نعم، اطرده
                 </button>
               </div>
             </div>
