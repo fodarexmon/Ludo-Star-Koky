@@ -36,11 +36,11 @@ function InstructionsPage() {
                 </p>
               </div>
               <div className="bg-white/5 p-5 rounded-2xl">
-                <h3 className="text-lg font-bold text-purple-400 mb-2">قواعد الرقم 6</h3>
+                <h3 className="text-lg font-bold text-purple-400 mb-2">قواعد الرقم 6 واللفات الإضافية</h3>
                 <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
                   <li>لإخراج قطعة من القاعدة، يجب أن يظهر الرقم <strong>6</strong>.</li>
-                  <li>عند ظهور الرقم 6، تحصل على <strong>لفة نرد إضافية</strong>.</li>
-                  <li>إذا ظهر الرقم 6 <span className="text-destructive font-bold">ثلاث مرات متتالية</span>، يضيع دورك!</li>
+                  <li>عند ظهور الرقم 6، أو إيصال قطعة لـ <strong>المركز</strong>، أو <strong>أكل قطعة</strong> خصم، تحصل على <strong>لفة نرد إضافية</strong>.</li>
+                  <li>إذا ظهر الرقم 6 <span className="text-destructive font-bold">ثلاث مرات متتالية</span>، يُلغى دورك الأخير ويضيع!</li>
                 </ul>
               </div>
             </div>
@@ -217,7 +217,7 @@ function InstructionsPage() {
             <div className="space-y-4">
               <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl">
                 <h3 className="text-destructive font-bold mb-1">الانسحاب الهروبي (Rage Quit)</h3>
-                <p className="text-sm text-destructive-foreground/80">إذا قمت بالضغط على زر "انسحاب" طوعاً أثناء مباراة أونلاين، <strong>سيتم حظرك من اللعب المباشر لمدة 15 دقيقة</strong>. اللعب النظيف وتحمل الخسارة هو من شيم الأبطال!</p>
+                <p className="text-sm text-destructive-foreground/80">الانسحاب طوعاً أثناء المباريات سيؤدي إلى <strong>حظرك من اللعب المباشر لمدة 15 دقيقة</strong>. أما في مباريات السلسلة (Best of 5)، فالانسحاب يجعلك تحصل تلقائياً على المركز الأخير في تلك المباراة وتخسر النقاط الممكنة، لكن يمكنك إكمال المباراة التالية في السلسلة.</p>
               </div>
               <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
                 <h3 className="text-orange-400 font-bold mb-1">الغياب وتفويت الدور (AFK)</h3>
@@ -232,6 +232,12 @@ function InstructionsPage() {
               <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
                 <h3 className="text-yellow-400 font-bold mb-1">الاحترام في المحادثات</h3>
                 <p className="text-sm text-yellow-200/80">يُمنع الإساءة للآخرين في المحادثات الصوتية. في حال الانزعاج، يمكنك دائماً كتم (Mute) اللاعب المزعج من خلال الضغط على أيقونة الصوت بجانب اسمه.</p>
+              </div>
+              <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
+                <h3 className="text-purple-400 font-bold mb-1">صلاحيات الهوست (المضيف 👑)</h3>
+                <p className="text-sm text-purple-200/80">
+                  منشئ الغرفة الخاصة (المضيف) يمتلك صلاحية استثنائية لطرد (Kick) أي لاعب مزعج أثناء مجريات اللعبة نفسها للحفاظ على بيئة لعب مريحة ونظيفة.
+                </p>
               </div>
             </div>
           </section>
