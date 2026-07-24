@@ -186,8 +186,8 @@ export const Board = memo(function Board({
                         textShadow: "0 2px 4px rgba(0,0,0,0.5)"
                       }}
                     >
-                      {hostId && player.userId === hostId && <span className="text-yellow-400" title="المضيف" style={{ fontSize: CELL * 0.6, WebkitTextStroke: "0" }}>👑</span>}
                       {player.name}
+                      {hostId && player.userId === hostId && <span className="text-yellow-400 drop-shadow-md" title="المضيف" style={{ fontSize: CELL * 0.65, WebkitTextStroke: "0", filter: "drop-shadow(0 0 2px rgba(0,0,0,0.8))" }}>👑</span>}
                     </span>
                   </div>
                 </foreignObject>
