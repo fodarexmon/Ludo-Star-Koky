@@ -223,6 +223,12 @@ function InstructionsPage() {
                 <h3 className="text-orange-400 font-bold mb-1">الغياب وتفويت الدور (AFK)</h3>
                 <p className="text-sm text-orange-200/80">لديك وقت محدود للعب دورك. إذا انتهى الوقت سيتم لعب الدور تلقائياً. <strong>إذا قمت بتفويت الدور 5 مرات متتالية</strong> سيتم استبعادك من المباراة تلقائياً لعدم تعطيل اللاعبين الآخرين.</p>
               </div>
+              <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
+                <h3 className="text-blue-400 font-bold mb-1">انقطاع الاتصال والعودة (Disconnect & Reconnect)</h3>
+                <p className="text-sm text-blue-200/80">
+                  إذا انقطع اتصالك في الغرف الرباعية أو الثلاثية، سيكمل البوت (الذكاء الاصطناعي) اللعب بالنيابة عنك مؤقتاً لتجنب تعطيل اللاعبين الآخرين. بمجرد إعادة اتصالك بالإنترنت قبل انتهاء المباراة، ستستعيد السيطرة على قطعك فوراً وسيتم تصفير عداد "تفويت الدور" لتكمل لعبك بشكل طبيعي. <br/> <span className="text-destructive font-bold text-xs mt-1 block">*ملاحظة: في الغرف الثنائية (لاعب ضد لاعب)، انقطاع الاتصال يعني انسحابك وخسارتك للمباراة فوراً.</span>
+                </p>
+              </div>
               <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl">
                 <h3 className="text-yellow-400 font-bold mb-1">الاحترام في المحادثات</h3>
                 <p className="text-sm text-yellow-200/80">يُمنع الإساءة للآخرين في المحادثات الصوتية. في حال الانزعاج، يمكنك دائماً كتم (Mute) اللاعب المزعج من خلال الضغط على أيقونة الصوت بجانب اسمه.</p>
