@@ -36,7 +36,8 @@ export const Board = memo(function Board({
   themeId,
   tokenThemeId,
   trailThemeId,
-  profiles
+  profiles,
+  hostId
 }: { 
   state: GameState; 
   onTokenClick?: (seat: number, tokenIdx: number) => void; 
