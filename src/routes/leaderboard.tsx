@@ -4,6 +4,7 @@ import { collection, query, orderBy, limit, getDocs, getDoc, doc, where, getCoun
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged } from "firebase/auth";
 import { Avatar } from "@/components/Avatar";
+import { ProfileModal } from "@/components/ProfileModal";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({ meta: [{ title: "لوحة الشرف — Ludo Star" }] }),
@@ -17,6 +18,7 @@ function LeaderboardPage() {
   const [findingRank, setFindingRank] = useState(false);
   const [highlightUserId, setHighlightUserId] = useState<string | null>(null);
   const [myRankMsg, setMyRankMsg] = useState<string | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<{ profile: any; rank: number } | null>(null);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
@@ -153,13 +155,22 @@ function LeaderboardPage() {
                 const rankColors = ["text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]", "text-gray-300 drop-shadow-[0_0_8px_rgba(209,213,219,0.5)]", "text-amber-600 drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]", "text-muted-foreground"];
                 const medals = ["🥇", "🥈", "🥉", ""];
                 return (
-                  <div id={`rank-${p.id}`} key={p.id} className={`flex items-center gap-4 p-4 transition-colors ${i === 0 ? "bg-primary/10" : "hover:bg-white/5"} ${highlightUserId === p.id ? "bg-sky-500/20 border border-sky-500/50 shadow-[0_0_20px_rgba(14,165,233,0.3)]" : ""}`}>
+                  <div 
+                    id={`rank-${p.id}`} 
+                    key={p.id} 
+                    onClick={() => setSelectedProfile({ profile: p, rank: p.exactRank ? p.exactRank : (i + 1) })}
+                    title="اضغط لعرض الملف الشخصي والتفاصيل"
+                    className={`flex items-center gap-4 p-4 transition-all cursor-pointer hover:bg-white/10 hover:translate-x-1 ${i === 0 ? "bg-primary/10" : "hover:bg-white/5"} ${highlightUserId === p.id ? "bg-sky-500/20 border border-sky-500/50 shadow-[0_0_20px_rgba(14,165,233,0.3)]" : ""}`}
+                  >
                     <div className={`text-2xl md:text-3xl font-black w-12 text-center ${rankColors[i] || rankColors[3]}`}>
                       {p.exactRank ? `#${p.exactRank}` : (medals[i] || `#${i + 1}`)}
                     </div>
-                    <Avatar id={p.avatar_id || 'a1'} size={56} frameThemeId={p.equipped?.frame} />
+                    <div className="relative group/avatar">
+                      <Avatar id={p.avatar_id || 'a1'} size={56} frameThemeId={p.equipped?.frame} />
+                      <div className="absolute inset-0 rounded-full bg-amber-400/0 group-hover/avatar:bg-amber-400/20 transition-colors pointer-events-none" />
+                    </div>
                     <div className="flex-1">
-                      <div className="font-bold text-lg md:text-xl flex items-center gap-2">
+                      <div className="font-bold text-lg md:text-xl flex items-center gap-2 group-hover/name:text-amber-300">
                         {p.display_name}
                         {p.country && <span className="text-sm opacity-60">({p.country})</span>}
                       </div>
@@ -182,6 +193,12 @@ function LeaderboardPage() {
           )}
         </div>
       </div>
+
+      <ProfileModal 
+        profile={selectedProfile?.profile || null}
+        rank={selectedProfile?.rank}
+        onClose={() => setSelectedProfile(null)} 
+      />
     </div>
   );
 }
