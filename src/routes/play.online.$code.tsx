@@ -78,6 +78,8 @@ interface RoomRow {
   players?: PlayerRow[];
   matchCount?: number;
   scores?: Record<string, number>;
+  seriesKills?: Record<string, number>;
+  seriesDeaths?: Record<string, number>;
   coinsEarned?: Record<string, number>;
   reactions?: Record<string, { emoji: string; sender: string; timestamp: number }>;
   chats?: Record<string, ChatMessage>;
@@ -409,6 +411,8 @@ function RoomPage() {
       status: "playing",
       matchCount: 1,
       scores: {},
+      seriesKills: {},
+      seriesDeaths: {},
     });
   }
 
@@ -504,8 +508,10 @@ function RoomPage() {
       }
     }
     
-    if (isBestOf5Unfinished && room.scores && room.scores[userId]) {
-      updates[`scores.${userId}`] = deleteField();
+    if (isBestOf5Unfinished) {
+      if (room.scores && room.scores[userId]) updates[`scores.${userId}`] = deleteField();
+      if (room.seriesKills && room.seriesKills[userId]) updates[`seriesKills.${userId}`] = deleteField();
+      if (room.seriesDeaths && room.seriesDeaths[userId]) updates[`seriesDeaths.${userId}`] = deleteField();
     }
     
     // Host migration
@@ -650,6 +656,8 @@ function RoomPage() {
 
       const newScores = { ...(room?.scores || {}) };
       const newCoinsEarned: Record<string, number> = {};
+      const newSeriesKills = { ...(room?.seriesKills || {}) };
+      const newSeriesDeaths = { ...(room?.seriesDeaths || {}) };
       const numPlayers = next.players.length;
 
       const getPoints = (num: number, rank: number) => {
@@ -673,6 +681,11 @@ function RoomPage() {
           const points = getPoints(numPlayers, index);
           newScores[p.userId] = (newScores[p.userId] || 0) + points;
 
+          const matchKills = next.stats?.kills?.[seat] || 0;
+          const matchDeaths = next.stats?.deaths?.[seat] || 0;
+          newSeriesKills[p.userId] = (newSeriesKills[p.userId] || 0) + matchKills;
+          newSeriesDeaths[p.userId] = (newSeriesDeaths[p.userId] || 0) + matchDeaths;
+
           const earnedCoins = getCoins(numPlayers, index);
           newCoinsEarned[p.userId] = earnedCoins;
 
@@ -686,7 +699,7 @@ function RoomPage() {
           }
         }
       }
-      updates = { scores: newScores, coinsEarned: newCoinsEarned };
+      updates = { scores: newScores, coinsEarned: newCoinsEarned, seriesKills: newSeriesKills, seriesDeaths: newSeriesDeaths };
     }
     await pushState(next, status, updates);
   }
@@ -1876,11 +1889,20 @@ function OnlineMatch({
       return [...originalMatchRanks].sort((a, b) => {
         const pA = game.players[a].userId!;
         const pB = game.players[b].userId!;
-        return (room.scores?.[pB] || 0) - (room.scores?.[pA] || 0);
+        const scoreDiff = (room.scores?.[pB] || 0) - (room.scores?.[pA] || 0);
+        if (scoreDiff !== 0) return scoreDiff;
+
+        const killsDiff = (room.seriesKills?.[pB] || 0) - (room.seriesKills?.[pA] || 0);
+        if (killsDiff !== 0) return killsDiff;
+
+        const deathsDiff = (room.seriesDeaths?.[pA] || 0) - (room.seriesDeaths?.[pB] || 0);
+        if (deathsDiff !== 0) return deathsDiff;
+
+        return 0;
       });
     }
     return originalMatchRanks;
-  }, [isGameOver, room.matchCount, room.scores, originalMatchRanks, game.players]);
+  }, [isGameOver, room.matchCount, room.scores, room.seriesKills, room.seriesDeaths, originalMatchRanks, game.players]);
 
   const [statsUpdated, setStatsUpdated] = useState(false);
   useEffect(() => {
