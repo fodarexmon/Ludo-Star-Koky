@@ -28,6 +28,8 @@ function FriendsPage() {
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [loadingSentReqs, setLoadingSentReqs] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
+  const [friendToUnfriend, setFriendToUnfriend] = useState<any | null>(null);
+  const [unfriending, setUnfriending] = useState(false);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
@@ -152,6 +154,27 @@ function FriendsPage() {
       return () => { unsub(); unsubReqs(); unsubSentReqs(); };
     });
   }, []);
+
+  async function handleConfirmUnfriend() {
+    if (!userId || !friendToUnfriend) return;
+    setUnfriending(true);
+    try {
+      await deleteDoc(doc(db, `profiles/${userId}/friends/${friendToUnfriend.id}`));
+      await deleteDoc(doc(db, `profiles/${friendToUnfriend.id}/friends/${userId}`));
+      
+      setFriends(prev => prev.filter(f => f.id !== friendToUnfriend.id));
+      const newSelected = new Set(selectedFriendsToInvite);
+      if (newSelected.has(friendToUnfriend.id)) {
+        newSelected.delete(friendToUnfriend.id);
+        setSelectedFriendsToInvite(newSelected);
+      }
+      setFriendToUnfriend(null);
+    } catch (e) {
+      console.error("Error unfriending:", e);
+    } finally {
+      setUnfriending(false);
+    }
+  }
 
   const handleAddFriend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -537,7 +560,7 @@ function FriendsPage() {
                             </div>
                           </div>
                         </div>
-                        <div>
+                        <div className="flex items-center gap-2">
                           {selectedFriendsToInvite.has(friend.id) ? (
                             <button 
                               onClick={() => {
@@ -545,7 +568,7 @@ function FriendsPage() {
                                 newSet.delete(friend.id);
                                 setSelectedFriendsToInvite(newSet);
                               }}
-                              className="btn-game !bg-gradient-to-b !from-green-500 !to-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.4)] px-4 py-2 text-sm whitespace-nowrap"
+                              className="btn-game !bg-gradient-to-b !from-green-500 !to-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.4)] px-3 py-2 text-sm whitespace-nowrap"
                             >
                               ✓ تم التحديد
                             </button>
@@ -560,11 +583,21 @@ function FriendsPage() {
                                 newSet.add(friend.id);
                                 setSelectedFriendsToInvite(newSet);
                               }}
-                              className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-4 py-2 text-sm whitespace-nowrap"
+                              className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-3 py-2 text-sm whitespace-nowrap"
                             >
                               + تحديد للدعوة
                             </button>
                           )}
+                          <button
+                            onClick={() => setFriendToUnfriend(friend)}
+                            title="إلغاء الصداقة"
+                            className="btn-ghost !px-3 !py-2 !text-red-400 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-xl transition-all flex items-center gap-1.5 shrink-0 text-xs font-bold whitespace-nowrap"
+                          >
+                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+                            </svg>
+                            <span>إلغاء الصداقة</span>
+                          </button>
                         </div>
                       </div>
                     );
@@ -580,6 +613,37 @@ function FriendsPage() {
         profile={selectedProfile} 
         onClose={() => setSelectedProfile(null)} 
       />
+
+      {friendToUnfriend && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-gradient-to-b from-slate-900 via-zinc-900 to-slate-950 border border-red-500/30 w-full max-w-md rounded-2xl p-6 shadow-[0_0_45px_rgba(239,68,68,0.25)] text-center animate-in zoom-in-95 duration-200" dir="rtl">
+            <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h3 className="text-xl font-black text-white mb-2">تأكيد إلغاء الصداقة</h3>
+            <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+              هل أنت متأكد أنك تريد إلغاء صداقتك مع <strong className="text-amber-300 font-bold">{friendToUnfriend.display_name}</strong>؟<br />
+              <span className="text-xs text-red-400 font-medium block mt-2">⚠️ سيتم حذف الصداقة نهائياً من طرفك ومن طرف الصديق أيضاً، ولن تتمكنا من إرسال دعوات اللعب لبعضكما إلا بإضافة كود الصداقة من جديد.</span>
+            </p>
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={handleConfirmUnfriend}
+                disabled={unfriending}
+                className="btn-ghost flex-1 !text-red-400 border border-red-500/30 hover:bg-red-500/20 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
+              >
+                {unfriending ? "جاري الإلغاء..." : "نعم، إلغاء الصداقة"}
+              </button>
+              <button
+                onClick={() => setFriendToUnfriend(null)}
+                disabled={unfriending}
+                className="btn-game flex-1 !bg-slate-800 hover:!bg-slate-700 !border-slate-700 py-2.5 rounded-xl font-bold transition-all"
+              >
+                تراجع
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
