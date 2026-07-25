@@ -48,10 +48,30 @@ function LeaderboardPage() {
         setFindingRank(false);
         return;
       }
-      const myPoints = myDoc.data().stats?.totalPoints || 0;
-      const q = query(collection(db, "profiles"), where("stats.totalPoints", ">", myPoints));
-      const snapshot = await getCountFromServer(q);
-      const higherCount = snapshot.data().count;
+      const myStats = myDoc.data().stats || {};
+      const myPoints = myStats.totalPoints || 0;
+      const myGames = myStats.gamesPlayed || 0;
+      const myWins = myStats.wins || 0;
+      const myWinRate = myGames > 0 ? myWins / myGames : 0;
+
+      const qHigher = query(collection(db, "profiles"), where("stats.totalPoints", ">", myPoints));
+      const snapHigher = await getCountFromServer(qHigher);
+      let higherCount = snapHigher.data().count;
+
+      // Check tiebreaker among players with equal totalPoints
+      const qEqual = query(collection(db, "profiles"), where("stats.totalPoints", "==", myPoints));
+      const snapEqual = await getDocs(qEqual);
+      snapEqual.forEach(docSnap => {
+        if (docSnap.id === userId) return;
+        const s = docSnap.data()?.stats || {};
+        const g = s.gamesPlayed || 0;
+        const w = s.wins || 0;
+        const rate = g > 0 ? w / g : 0;
+        if (rate > myWinRate || (rate === myWinRate && w > myWins) || (rate === myWinRate && w === myWins && docSnap.id < userId)) {
+          higherCount++;
+        }
+      });
+
       const rank = higherCount + 1;
       
       const myData = { id: myDoc.id, ...myDoc.data(), exactRank: rank };
@@ -78,6 +98,17 @@ function LeaderboardPage() {
         const snap = await getDocs(q);
         const results: any[] = [];
         snap.forEach((doc) => results.push({ id: doc.id, ...doc.data() }));
+        results.sort((a, b) => {
+          const ptsA = a.stats?.totalPoints || 0;
+          const ptsB = b.stats?.totalPoints || 0;
+          if (ptsB !== ptsA) return ptsB - ptsA;
+
+          const rateA = (a.stats?.gamesPlayed || 0) > 0 ? (a.stats?.wins || 0) / a.stats.gamesPlayed : 0;
+          const rateB = (b.stats?.gamesPlayed || 0) > 0 ? (b.stats?.wins || 0) / b.stats.gamesPlayed : 0;
+          if (rateB !== rateA) return rateB - rateA;
+
+          return (b.stats?.wins || 0) - (a.stats?.wins || 0);
+        });
         setLeaders(results);
       } catch (e) {
         console.error("Failed to fetch leaderboard", e);
