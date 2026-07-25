@@ -156,7 +156,7 @@ function SettingsPage() {
 
         <div className="panel space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium">اسم العرض</label>
+            <label className="mb-1 block text-sm font-medium">اسم اللاعب</label>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={24}
               className="w-full rounded-lg border border-border bg-secondary px-3 py-2" />
           </div>
