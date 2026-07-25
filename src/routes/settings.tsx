@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { loadProfile, saveProfile } from "@/lib/profile";
 import { Avatar, AvatarPicker } from "@/components/Avatar";
+import { ProfileModal } from "@/components/ProfileModal";
 import { COUNTRIES } from "@/data/countries";
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -29,6 +30,8 @@ function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [stats, setStats] = useState<{ gamesPlayed: number, wins: number, totalPoints: number } | null>(null);
+  const [fullProfile, setFullProfile] = useState<any | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -43,6 +46,7 @@ function SettingsPage() {
           setFrameThemeId(data.equipped?.frame);
           setVoiceChatDisabled(data.voice_chat_disabled || false);
           setStats(data.stats || { gamesPlayed: 0, wins: 0, totalPoints: 0 });
+          setFullProfile(data);
           
           saveProfile({
             displayName: data.display_name || user.displayName || "Player",
@@ -119,18 +123,25 @@ function SettingsPage() {
         <h1 className="mb-6 text-3xl font-bold">Settings & Profile</h1>
         
         {userId && stats && (
-          <div className="panel mb-6 flex gap-4 text-center">
-            <div className="flex-1 bg-secondary rounded-lg p-3">
-              <div className="text-2xl font-black text-primary">{stats.gamesPlayed}</div>
-              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Games</div>
+          <div 
+            onClick={() => setShowProfileModal(true)}
+            title="اضغط لعرض الملف الشخصي والإحصائيات التفصيلية"
+            className="panel mb-6 flex gap-4 text-center cursor-pointer hover:bg-white/10 hover:scale-[1.02] transition-all duration-200 border border-amber-500/30 shadow-[0_0_25px_rgba(250,204,21,0.15)] group relative overflow-hidden"
+          >
+            <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[10px] text-amber-300 font-bold opacity-70 group-hover:opacity-100 transition-opacity">
+              ✨ اضغط لعرض ملف حسابك الكامل ✨
             </div>
-            <div className="flex-1 bg-secondary rounded-lg p-3">
-              <div className="text-2xl font-black text-ludo-green">{stats.wins}</div>
-              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Wins</div>
+            <div className="flex-1 bg-secondary group-hover:bg-black/30 transition-colors rounded-xl p-3 pt-5 border border-white/5">
+              <div className="text-2xl font-black text-primary drop-shadow">{stats.gamesPlayed}</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Games 🎮</div>
             </div>
-            <div className="flex-1 bg-secondary rounded-lg p-3">
-              <div className="text-2xl font-black text-ludo-yellow">{stats.totalPoints}</div>
-              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Points</div>
+            <div className="flex-1 bg-secondary group-hover:bg-black/30 transition-colors rounded-xl p-3 pt-5 border border-white/5">
+              <div className="text-2xl font-black text-emerald-400 drop-shadow">{stats.wins}</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Wins 👑</div>
+            </div>
+            <div className="flex-1 bg-secondary group-hover:bg-black/30 transition-colors rounded-xl p-3 pt-5 border border-white/5">
+              <div className="text-2xl font-black text-amber-300 drop-shadow">{stats.totalPoints}</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Points ⭐</div>
             </div>
           </div>
         )}
@@ -217,6 +228,13 @@ function SettingsPage() {
           )}
         </div>
       </div>
+
+      {showProfileModal && (
+        <ProfileModal
+          profile={fullProfile ? { ...fullProfile, display_name: name, country, avatar_id: avatarId } : { display_name: name, country, avatar_id: avatarId, stats: stats || {} }}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
     </div>
   );
 }
