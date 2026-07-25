@@ -81,7 +81,9 @@ function SettingsPage() {
       }, { merge: true });
     }
     setSaved(true);
-    setTimeout(() => setSaved(false), 1600);
+    setTimeout(() => {
+      navigate({ to: "/" });
+    }, 350);
   }
 
   async function handleSignOut() {
@@ -219,7 +221,17 @@ function SettingsPage() {
             
             <AvatarPicker value={avatarId} onChange={setAvatarId} frameThemeId={frameThemeId} />
           </div>
-          <button onClick={save} className="btn-game w-full">{saved ? "✓ Saved" : "Save Changes"}</button>
+          <div className="flex items-center gap-3 w-full">
+            <button onClick={save} className="btn-game flex-1">
+              {saved ? "✓ Saved" : "Save Changes"}
+            </button>
+            <button 
+              onClick={() => navigate({ to: "/" })} 
+              className="btn-ghost flex-1 border border-white/20 text-gray-300 hover:bg-white/10"
+            >
+              Discard Changes
+            </button>
+          </div>
           
           {userId ? (
             <div className="pt-4 mt-2 border-t border-border flex flex-col gap-3">
