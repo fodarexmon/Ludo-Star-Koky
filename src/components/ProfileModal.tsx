@@ -32,6 +32,15 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
   const maxWinStreak = stats.maxWinStreak || 0;
   const currentWinStreak = stats.currentWinStreak || 0;
   const country = getCountry(profile.country || "US");
+  const friendsCount = profile.friends?.length || stats.friendsCount || 0;
+  const firstPlace = stats.firstPlace !== undefined ? stats.firstPlace : wins;
+  const secondPlace = stats.secondPlace || 0;
+  const thirdPlace = stats.thirdPlace || 0;
+  const fourthPlace = stats.fourthPlace || 0;
+  const surrenders = stats.surrenders || stats.forfeits || 0;
+  const timesKicked = stats.timesKicked || stats.kickedCount || 0;
+  const timesBanned = stats.timesBanned || (profile.bans?.count || 0);
+  const purchasedItems = profile.inventory?.length || stats.purchasedItems || 0;
 
   // Revolutionary Multi-Dimensional Smart Badge System (Max 7 badges sorted by rarity & weight)
   interface Badge { label: string; weight: number; style: string; tier: string; }
@@ -216,6 +225,45 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
               <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
                 <span className="font-bold text-sky-400">{currentWinStreak}</span>
                 <span className="text-gray-400 text-xs">🚀 السلسلة الحالية</span>
+              </div>
+
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-indigo-300">{friendsCount}</span>
+                <span className="text-gray-400 text-xs">👥 عدد الأصدقاء</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-yellow-300">{purchasedItems}</span>
+                <span className="text-gray-400 text-xs">🛍️ عناصر مشتراة من المتجر</span>
+              </div>
+
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-amber-300">{firstPlace}</span>
+                <span className="text-gray-400 text-xs">🥇 مركز أول</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-slate-300">{secondPlace}</span>
+                <span className="text-gray-400 text-xs">🥈 مركز ثانٍ</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-amber-600">{thirdPlace}</span>
+                <span className="text-gray-400 text-xs">🥉 مركز ثالث</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-red-300/80">{fourthPlace}</span>
+                <span className="text-gray-400 text-xs">4️⃣ مركز رابع</span>
+              </div>
+
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-orange-400">{surrenders}</span>
+                <span className="text-gray-400 text-xs">🏳️ عدد مرات الانسحاب</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5">
+                <span className="font-bold text-red-400">{timesKicked}</span>
+                <span className="text-gray-400 text-xs">👢 عدد مرات الطرد</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/20 px-3 py-2 rounded-xl border border-white/5 col-span-2">
+                <span className="font-bold text-red-500">{timesBanned}</span>
+                <span className="text-gray-400 text-xs">🚫 عدد مرات الحظر</span>
               </div>
             </div>
           </div>

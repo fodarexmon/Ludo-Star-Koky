@@ -570,7 +570,11 @@ function RoomPage() {
         }
       }
     }
-    await updateDoc(pdRef, { bans: newBan });
+    await updateDoc(pdRef, { 
+      bans: newBan,
+      "stats.surrenders": increment(1),
+      "stats.timesBanned": increment(1),
+    });
     await updateDoc(doc(db, "rooms", code), {
       [`reactions.${mySeat}`]: { emoji: "🏳️", sender: mySeat, timestamp: getServerTime() },
     });
@@ -583,6 +587,16 @@ function RoomPage() {
     await updateDoc(doc(db, "rooms", code), {
       [`reactions.${targetSeat}`]: { emoji: "👢", sender: targetSeat, timestamp: getServerTime() },
     });
+    const targetPlayer = (room.players || []).find((p: any) => p.seat === targetSeat);
+    if (targetPlayer?.user_id) {
+      try {
+        await updateDoc(doc(db, "profiles", targetPlayer.user_id), {
+          "stats.timesKicked": increment(1),
+        });
+      } catch (e) {
+        console.error("Kick stats update failed:", e);
+      }
+    }
     const next = resignPlayer(game, targetSeat, getServerTime());
     await handleStateChange(next);
   }
@@ -1962,6 +1976,10 @@ function OnlineMatch({
           "stats.currentWinStreak": currentWinStreak,
           "stats.maxWinStreak": maxWinStreak,
           "stats.flawlessWins": flawlessWins,
+          "stats.firstPlace": increment(myRank === 0 ? 1 : 0),
+          "stats.secondPlace": increment(myRank === 1 ? 1 : 0),
+          "stats.thirdPlace": increment(myRank === 2 ? 1 : 0),
+          "stats.fourthPlace": increment(myRank === 3 ? 1 : 0),
         });
       } catch {
         const piecesEatenInMatch = game.stats?.kills?.[myPlayer.seat] || 0;
@@ -1978,6 +1996,10 @@ function OnlineMatch({
               currentWinStreak: isWin ? 1 : 0,
               maxWinStreak: isWin ? 1 : 0,
               flawlessWins: flawlessWins,
+              firstPlace: myRank === 0 ? 1 : 0,
+              secondPlace: myRank === 1 ? 1 : 0,
+              thirdPlace: myRank === 2 ? 1 : 0,
+              fourthPlace: myRank === 3 ? 1 : 0,
             },
           },
           { merge: true },
