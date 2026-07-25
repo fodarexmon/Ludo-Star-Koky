@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, doc, setDoc, getDoc, onSnapshot, del
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged } from "firebase/auth";
 import { Avatar } from "@/components/Avatar";
+import { ProfileModal } from "@/components/ProfileModal";
 import { sendPushNotification } from "@/utils/notifications";
 
 export const Route = createFileRoute("/friends")({
@@ -26,6 +27,7 @@ function FriendsPage() {
   const [loadingReqs, setLoadingReqs] = useState(true);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
   const [loadingSentReqs, setLoadingSentReqs] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
@@ -386,10 +388,17 @@ function FriendsPage() {
                 <div className="divide-y divide-white/5">
                   {requests.map(req => (
                     <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
-                      <div className="flex items-center gap-4 w-full md:w-auto">
-                         <Avatar id={req.avatar_id || "a1"} size={48} />
+                      <div 
+                        onClick={() => setSelectedProfile(req)}
+                        title="اضغط لعرض الملف الشخصي للتفاصيل والمستوى"
+                        className="flex items-center gap-4 w-full md:w-auto cursor-pointer group"
+                      >
+                         <div className="relative">
+                           <Avatar id={req.avatar_id || "a1"} size={48} frameThemeId={req.equipped?.frame} />
+                           <div className="absolute inset-0 rounded-full bg-amber-400/0 group-hover:bg-amber-400/20 transition-colors pointer-events-none" />
+                         </div>
                          <div>
-                            <div className="font-bold text-lg">{req.display_name}</div>
+                            <div className="font-bold text-lg group-hover:text-amber-300 transition-colors">{req.display_name}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <span className="uppercase">{req.country || "unk"}</span>
                                 <span>•</span>
@@ -430,10 +439,17 @@ function FriendsPage() {
                 <div className="divide-y divide-white/5">
                   {sentRequests.map(req => (
                     <div key={req.id} className="p-4 flex flex-col md:flex-row items-center justify-between hover:bg-white/5 transition-colors gap-4">
-                      <div className="flex items-center gap-4 w-full md:w-auto">
-                         <Avatar id={req.avatar_id || "a1"} size={48} />
+                      <div 
+                        onClick={() => setSelectedProfile(req)}
+                        title="اضغط لعرض الملف الشخصي للتفاصيل والمستوى"
+                        className="flex items-center gap-4 w-full md:w-auto cursor-pointer group"
+                      >
+                         <div className="relative">
+                           <Avatar id={req.avatar_id || "a1"} size={48} frameThemeId={req.equipped?.frame} />
+                           <div className="absolute inset-0 rounded-full bg-amber-400/0 group-hover:bg-amber-400/20 transition-colors pointer-events-none" />
+                         </div>
                          <div>
-                            <div className="font-bold text-lg">{req.display_name}</div>
+                            <div className="font-bold text-lg group-hover:text-amber-300 transition-colors">{req.display_name}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <span className="uppercase">{req.country || "unk"}</span>
                                 <span>•</span>
@@ -499,19 +515,26 @@ function FriendsPage() {
                     
                     return (
                       <div key={friend.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
-                        <div className="relative">
-                          <Avatar id={friend.avatar_id || 'a1'} size={50} />
-                          <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#1a1b2e] ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-gray-500'}`} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-bold text-lg">{friend.display_name}</div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-2">
-                            {isOnline ? (
-                              <span className="text-green-400 font-medium">متصل الآن</span>
-                            ) : (
-                              <span>غير متصل</span>
-                            )}
-                            {friend.country && <span className="opacity-50">({friend.country})</span>}
+                        <div 
+                          onClick={() => setSelectedProfile(friend)}
+                          title="اضغط لعرض الملف الشخصي للتفاصيل والمستوى"
+                          className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer group"
+                        >
+                          <div className="relative flex-shrink-0">
+                            <Avatar id={friend.avatar_id || 'a1'} size={50} frameThemeId={friend.equipped?.frame} />
+                            <div className="absolute inset-0 rounded-full bg-amber-400/0 group-hover:bg-amber-400/20 transition-colors pointer-events-none" />
+                            <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#1a1b2e] ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-gray-500'}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-lg group-hover:text-amber-300 transition-colors truncate">{friend.display_name}</div>
+                            <div className="text-sm text-muted-foreground flex items-center gap-2">
+                              {isOnline ? (
+                                <span className="text-green-400 font-medium">متصل الآن</span>
+                              ) : (
+                                <span>غير متصل</span>
+                              )}
+                              {friend.country && <span className="opacity-50">({friend.country})</span>}
+                            </div>
                           </div>
                         </div>
                         <div>
@@ -552,6 +575,11 @@ function FriendsPage() {
           </div>
         )}
       </div>
+
+      <ProfileModal 
+        profile={selectedProfile} 
+        onClose={() => setSelectedProfile(null)} 
+      />
     </div>
   );
 }
