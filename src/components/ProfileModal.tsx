@@ -100,8 +100,8 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
 
   // 5. Wealth & Prestige
   if (coins >= 100000) allBadges.push({ label: "👑 عملاق الذهب (100k+ 💰)", weight: 130, tier: "mythic", style: mythicStyle });
-  else if (coins >= 25000) allBadges.push({ label: "💰 المليونير الماسي", weight: 82, tier: "legendary", style: legendaryStyle });
-  else if (coins >= 5000) allBadges.push({ label: "🪙 ثري الطاولات", weight: 58, tier: "rare", style: rareStyle });
+  else if (coins >= 25000) allBadges.push({ label: "💎 المليونير الماسي", weight: 82, tier: "legendary", style: legendaryStyle });
+  else if (coins >= 5000) allBadges.push({ label: "💰 ثري الطاولات", weight: 58, tier: "rare", style: rareStyle });
 
   if (profile.equipped?.frame && profile.equipped?.board) allBadges.push({ label: "🎨 أيقونة الموضة الملكية", weight: 80, tier: "legendary", style: legendaryStyle });
   else if (profile.equipped?.frame || profile.equipped?.board || profile.equipped?.dice) allBadges.push({ label: "🛍️ متذوق المقتنيات الخاصة", weight: 38, tier: "normal", style: normalStyle });

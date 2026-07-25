@@ -1557,7 +1557,7 @@ function ChatMenu({
     const myProfile = profiles[userId];
     const myCoins = myProfile?.stats?.coins || 0;
     if (myCoins < 50) {
-      toast.error("ليس لديك عدد كافٍ من الكوينز (تحتاج 50 🪙)");
+      toast.error("ليس لديك عدد كافٍ من الكوينز (تحتاج 50 💰)");
       return;
     }
 
