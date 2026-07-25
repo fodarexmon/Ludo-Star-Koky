@@ -32,18 +32,65 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
   const currentWinStreak = stats.currentWinStreak || 0;
   const country = getCountry(profile.country || "US");
 
-  // Compute dynamic titles based on skill and play history
-  const badges: string[] = [];
-  if (totalPoints >= 500 || (winRate >= 70 && gamesPlayed >= 10)) badges.push("🔥 أسطورة اللودو");
-  else if (wins >= 20 || (winRate >= 50 && gamesPlayed >= 5)) badges.push("⚔️ محترف منافس");
-  else badges.push("🌟 مبارز صاعد");
+  // Revolutionary Multi-Dimensional Smart Badge System (Max 7 badges sorted by rarity & weight)
+  interface Badge { label: string; weight: number; style: string; tier: string; }
+  const allBadges: Badge[] = [];
 
-  if (gamesPlayed >= 100) badges.push("🎲 لعيب مخضرم");
-  else if (gamesPlayed >= 20) badges.push("🛡️ مقاتل متمرس");
-  else if (gamesPlayed > 0) badges.push("🚀 مستكشف الطاولة");
+  const mythicStyle = "bg-gradient-to-r from-amber-500/30 via-red-500/30 to-purple-600/30 border border-amber-400/80 text-amber-200 shadow-[0_0_15px_rgba(250,204,21,0.4)] animate-pulse";
+  const legendaryStyle = "bg-gradient-to-r from-yellow-500/20 via-amber-600/20 to-orange-600/20 border border-yellow-400/60 text-yellow-300 shadow-[0_0_10px_rgba(234,179,8,0.3)]";
+  const epicStyle = "bg-gradient-to-r from-purple-600/25 to-fuchsia-600/25 border border-purple-400/50 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.3)]";
+  const rareStyle = "bg-gradient-to-r from-sky-500/20 to-blue-600/20 border border-sky-400/40 text-sky-200";
+  const normalStyle = "bg-white/10 hover:bg-white/15 border border-white/15 text-gray-300";
 
-  if (flawlessWins >= 3) badges.push("👑 الملك الذي لا يُقهر");
-  else if (maxWinStreak >= 5) badges.push("⚡ سلسلة انتصارات نارية");
+  // 1. Skill & Win Rate Supremacy
+  if (winRate >= 80 && gamesPlayed >= 25) allBadges.push({ label: "💎 إمبراطور اللودو المطلق", weight: 150, tier: "mythic", style: mythicStyle });
+  else if (winRate >= 70 && gamesPlayed >= 15) allBadges.push({ label: "👑 جلاد الخصوم (70%+)", weight: 95, tier: "legendary", style: legendaryStyle });
+  else if (winRate >= 60 && gamesPlayed >= 10) allBadges.push({ label: "🔥 أسطورة المنافسين", weight: 75, tier: "epic", style: epicStyle });
+  else if (winRate >= 50 && gamesPlayed >= 5) allBadges.push({ label: "⚔️ محترف تكتيكي", weight: 50, tier: "rare", style: rareStyle });
+  else if (gamesPlayed >= 1) allBadges.push({ label: "🌟 مبارز صاعد", weight: 20, tier: "normal", style: normalStyle });
+
+  // 2. Playstyle & Combat Archetype
+  const avgKills = gamesPlayed > 0 ? piecesEaten / gamesPlayed : 0;
+  if (piecesEaten >= 200 || (avgKills >= 3.0 && gamesPlayed >= 10)) allBadges.push({ label: "👹 جزار الطاولة المرعب", weight: 140, tier: "mythic", style: mythicStyle });
+  else if (piecesEaten >= 100 || (avgKills >= 2.2 && gamesPlayed >= 5)) allBadges.push({ label: "💥 كابوس الزوايا والخصوم", weight: 90, tier: "legendary", style: legendaryStyle });
+  else if (piecesEaten >= 40 || avgKills >= 1.5) allBadges.push({ label: "⚔️ المفترس الشرس", weight: 65, tier: "epic", style: epicStyle });
+  else if (piecesEaten >= 10) allBadges.push({ label: "🎯 قناص القطع", weight: 45, tier: "rare", style: rareStyle });
+  else if (winRate >= 55 && avgKills <= 1.0 && gamesPlayed >= 5) allBadges.push({ label: "🧠 الداهية التكتيكي الهادئ", weight: 70, tier: "epic", style: epicStyle });
+
+  // 3. Win Streaks & Flawless Mastery
+  if (maxWinStreak >= 15) allBadges.push({ label: "⚡ سيرة رعب متواصلة (15+)", weight: 145, tier: "mythic", style: mythicStyle });
+  else if (maxWinStreak >= 10) allBadges.push({ label: "🌪️ إعصار لا يهدأ (10+)", weight: 92, tier: "legendary", style: legendaryStyle });
+  else if (maxWinStreak >= 5) allBadges.push({ label: "🔥 عاصفة اللودو (5+)", weight: 68, tier: "epic", style: epicStyle });
+
+  if (flawlessWins >= 20) allBadges.push({ label: "🚫 المحظور لمسه (Immortal)", weight: 138, tier: "mythic", style: mythicStyle });
+  else if (flawlessWins >= 10) allBadges.push({ label: "👑 المالك للأرض (10+ Flawless)", weight: 88, tier: "legendary", style: legendaryStyle });
+  else if (flawlessWins >= 3) allBadges.push({ label: "🛡️ فائز ساحق ونظيف", weight: 62, tier: "epic", style: epicStyle });
+  else if (flawlessWins >= 1) allBadges.push({ label: "✨ أول انتصار ساحق", weight: 25, tier: "normal", style: normalStyle });
+
+  // 4. Cumulative Points Tiers
+  if (totalPoints >= 10000) allBadges.push({ label: "🌌 زعيم المجرة (10k+)", weight: 135, tier: "mythic", style: mythicStyle });
+  else if (totalPoints >= 5000) allBadges.push({ label: "👑 جنرال اللودو (5k+)", weight: 85, tier: "legendary", style: legendaryStyle });
+  else if (totalPoints >= 2000) allBadges.push({ label: "🎖️ بطل ذهبي (2k+)", weight: 66, tier: "epic", style: epicStyle });
+  else if (totalPoints >= 500) allBadges.push({ label: "🏅 منافس بارع", weight: 44, tier: "rare", style: rareStyle });
+
+  // 5. Wealth & Prestige
+  if (coins >= 100000) allBadges.push({ label: "👑 عملاق الذهب (100k+ 💰)", weight: 130, tier: "mythic", style: mythicStyle });
+  else if (coins >= 25000) allBadges.push({ label: "💰 المليونير الماسي", weight: 82, tier: "legendary", style: legendaryStyle });
+  else if (coins >= 5000) allBadges.push({ label: "🪙 ثري الطاولات", weight: 58, tier: "rare", style: rareStyle });
+
+  if (profile.equipped?.frame && profile.equipped?.board) allBadges.push({ label: "🎨 أيقونة الموضة الملكية", weight: 80, tier: "legendary", style: legendaryStyle });
+  else if (profile.equipped?.frame || profile.equipped?.board || profile.equipped?.dice) allBadges.push({ label: "🛍️ متذوق المقتنيات الخاصة", weight: 38, tier: "normal", style: normalStyle });
+
+  // 6. Veterancy & Experience
+  if (gamesPlayed >= 500) allBadges.push({ label: "🏛️ أسطورة النادي المخضرمة", weight: 125, tier: "mythic", style: mythicStyle });
+  else if (gamesPlayed >= 200) allBadges.push({ label: "⚔️ محارب معارك الزمن الجميل", weight: 84, tier: "legendary", style: legendaryStyle });
+  else if (gamesPlayed >= 50) allBadges.push({ label: "🛡️ لعيب متمرس (50+)", weight: 61, tier: "epic", style: epicStyle });
+  else if (gamesPlayed >= 10) allBadges.push({ label: "🎲 عاشق المغامرة", weight: 41, tier: "rare", style: rareStyle });
+  else allBadges.push({ label: "🚀 مستكشف جديد", weight: 15, tier: "normal", style: normalStyle });
+
+  // Sort by weight (highest prestige first) and cap strictly at maximum of 7 badges!
+  allBadges.sort((a, b) => b.weight - a.weight);
+  const displayBadges = allBadges.slice(0, 7);
 
   // Get equipped items names
   const equipped = profile.equipped || {};
@@ -95,11 +142,15 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
             </div>
           </div>
 
-          {/* Badges / Titles */}
-          <div className="flex flex-wrap items-center justify-center gap-2 w-full">
-            {badges.map((badge, idx) => (
-              <span key={idx} className="bg-white/10 hover:bg-white/15 border border-white/10 text-xs px-3 py-1 rounded-full text-amber-200/90 font-medium tracking-wide transition-all shadow-sm">
-                {badge}
+          {/* Badges / Titles (Max 7 sorted by prestige and rarity) */}
+          <div className="flex flex-wrap items-center justify-center gap-2 w-full my-1">
+            {displayBadges.map((badge, idx) => (
+              <span 
+                key={idx} 
+                className={`text-xs px-3.5 py-1.5 rounded-full font-bold tracking-wide transition-all transform hover:scale-105 shadow-sm flex items-center gap-1 ${badge.style}`}
+                title={`الندرة: ${badge.tier.toUpperCase()} — التقييم الشرفي: ${badge.weight}`}
+              >
+                {badge.label}
               </span>
             ))}
           </div>
