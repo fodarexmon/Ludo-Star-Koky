@@ -46,7 +46,7 @@ function SettingsPage() {
           setFrameThemeId(data.equipped?.frame);
           setVoiceChatDisabled(data.voice_chat_disabled || false);
           setStats(data.stats || { gamesPlayed: 0, wins: 0, totalPoints: 0 });
-          setFullProfile(data);
+          setFullProfile({ id: user.uid, ...data });
           
           saveProfile({
             displayName: data.display_name || user.displayName || "Player",
@@ -231,7 +231,7 @@ function SettingsPage() {
 
       {showProfileModal && (
         <ProfileModal
-          profile={fullProfile ? { ...fullProfile, display_name: name, country, avatar_id: avatarId } : { display_name: name, country, avatar_id: avatarId, stats: stats || {} }}
+          profile={fullProfile ? { ...fullProfile, id: userId, display_name: name, country, avatar_id: avatarId } : { id: userId, display_name: name, country, avatar_id: avatarId, stats: stats || {} }}
           onClose={() => setShowProfileModal(false)}
         />
       )}

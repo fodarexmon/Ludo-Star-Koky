@@ -1,8 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Avatar } from "./Avatar";
 import { getCountry } from "@/data/countries";
 import { STORE_ITEMS } from "@/data/store";
 import { ACHIEVEMENTS } from "@/data/achievements";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/integrations/firebase/client";
 
 export interface ProfileModalProps {
   profile: any | null;
@@ -19,6 +21,20 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  const [friendsCount, setFriendsCount] = useState<number>(profile?.friends?.length || profile?.stats?.friendsCount || 0);
+
+  useEffect(() => {
+    const uid = profile?.id || profile?.uid;
+    if (uid) {
+      const friendsRef = collection(db, "profiles", uid, "friends");
+      getDocs(friendsRef).then((snap) => {
+        setFriendsCount(snap.size);
+      }).catch((e) => {
+        console.error("Failed to fetch friends count:", e);
+      });
+    }
+  }, [profile?.id, profile?.uid]);
+
   if (!profile) return null;
 
   const stats = profile.stats || {};
@@ -32,7 +48,6 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
   const maxWinStreak = stats.maxWinStreak || 0;
   const currentWinStreak = stats.currentWinStreak || 0;
   const country = getCountry(profile.country || "US");
-  const friendsCount = profile.friends?.length || stats.friendsCount || 0;
   const firstPlace = stats.firstPlace !== undefined ? stats.firstPlace : wins;
   const secondPlace = stats.secondPlace || 0;
   const thirdPlace = stats.thirdPlace || 0;
