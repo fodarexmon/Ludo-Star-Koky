@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Avatar } from "./Avatar";
 import { getCountry } from "@/data/countries";
 import { STORE_ITEMS } from "@/data/store";
+import { ACHIEVEMENTS } from "@/data/achievements";
 
 export interface ProfileModalProps {
   profile: any | null;
@@ -97,6 +98,15 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
   const equippedItems = Object.values(equipped).map((id) =>
     STORE_ITEMS.find((item) => item.id === id)
   ).filter(Boolean);
+
+  // Get achieved achievements
+  const unlockedAchievements = ACHIEVEMENTS.filter((ach) => {
+    try {
+      return ach.condition(stats, profile);
+    } catch (e) {
+      return false;
+    }
+  });
 
   return (
     <div 
@@ -230,6 +240,41 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
             ) : (
               <p className="text-xs text-gray-400 text-center py-2 italic">
                 يستخدم التصاميم الكلاسيكية الافتراضية 🎲
+              </p>
+            )}
+          </div>
+
+          {/* Unlocked Achievements Section */}
+          <div className="w-full bg-white/[0.03] rounded-2xl p-4 border border-white/10 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-300/90 text-right w-full border-b border-white/10 pb-2 flex items-center justify-between">
+              <span className="text-white text-[11px] font-normal bg-amber-500/20 px-2.5 py-0.5 rounded-md border border-amber-500/30">
+                {unlockedAchievements.length} / {ACHIEVEMENTS.length} إنجاز
+              </span>
+              <span>🏆 الإنجازات المكتسبة</span>
+            </h3>
+            {unlockedAchievements.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1 text-right">
+                {unlockedAchievements.map((ach) => (
+                  <div 
+                    key={ach.id} 
+                    className="flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-amber-500/20 hover:border-amber-500/40 transition-all gap-3 shadow-inner"
+                  >
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <span className="text-2xl filter drop-shadow flex-shrink-0 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">{ach.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-amber-200 truncate">{ach.title}</div>
+                        <div className="text-xs text-gray-400 truncate">{ach.description}</div>
+                      </div>
+                    </div>
+                    <span className="text-[11px] bg-green-500/20 text-green-300 px-2 py-1 rounded-lg font-bold border border-green-500/30 whitespace-nowrap flex-shrink-0">
+                      ✓ مُنجز
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 text-center py-4 italic bg-black/20 rounded-xl border border-white/5">
+                لم يتم تحقيق أي إنجاز بعد 🚀
               </p>
             )}
           </div>
