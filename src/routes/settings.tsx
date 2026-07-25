@@ -223,13 +223,13 @@ function SettingsPage() {
           </div>
           <div className="flex items-center gap-3 w-full">
             <button onClick={save} className="btn-game flex-1">
-              {saved ? "✓ Saved" : "Save Changes"}
+              {saved ? "✓ تم الحفظ" : "حفظ التغييرات"}
             </button>
             <button 
               onClick={() => navigate({ to: "/" })} 
               className="btn-ghost flex-1 border border-white/20 text-gray-300 hover:bg-white/10"
             >
-              Discard Changes
+              تجاهل التغييرات
             </button>
           </div>
           
