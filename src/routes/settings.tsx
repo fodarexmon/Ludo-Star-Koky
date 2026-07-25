@@ -6,7 +6,7 @@ import { ProfileModal } from "@/components/ProfileModal";
 import { COUNTRIES } from "@/data/countries";
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { requestNotificationPermission } from "@/hooks/useNotifications";
 
 export const Route = createFileRoute("/settings")({
@@ -34,36 +34,42 @@ function SettingsPage() {
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
+    let unsubProfile: (() => void) | undefined;
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
       setUserId(user?.uid ?? null);
+      if (unsubProfile) unsubProfile();
       if (user?.uid) {
-        const profSnap = await getDoc(doc(db, "profiles", user.uid));
-        if (profSnap.exists()) {
-          const data = profSnap.data();
-          setName(data.display_name || user.displayName || "Player");
-          setCountry(data.country || "US");
-          setAvatarId(data.avatar_id || user.photoURL || "a1");
-          setFrameThemeId(data.equipped?.frame);
-          setVoiceChatDisabled(data.voice_chat_disabled || false);
-          setStats(data.stats || { gamesPlayed: 0, wins: 0, totalPoints: 0 });
-          setFullProfile({ id: user.uid, ...data });
-          
-          saveProfile({
-            displayName: data.display_name || user.displayName || "Player",
-            country: data.country || "US",
-            avatarId: data.avatar_id || user.photoURL || "a1",
-            voiceChatDisabled: data.voice_chat_disabled || false,
-          });
-        } else {
-          // Fallback if profile doesn't exist in DB yet (e.g. legacy auth)
-          setName(user.displayName || "Player");
-          setAvatarId(user.photoURL || "a1");
-          setFrameThemeId(undefined);
-          setStats({ gamesPlayed: 0, wins: 0, totalPoints: 0 });
-        }
+        unsubProfile = onSnapshot(doc(db, "profiles", user.uid), (profSnap) => {
+          if (profSnap.exists()) {
+            const data = profSnap.data();
+            setName(data.display_name || user.displayName || "Player");
+            setCountry(data.country || "US");
+            setAvatarId(data.avatar_id || user.photoURL || "a1");
+            setFrameThemeId(data.equipped?.frame);
+            setVoiceChatDisabled(data.voice_chat_disabled || false);
+            setStats(data.stats || { gamesPlayed: 0, wins: 0, totalPoints: 0 });
+            setFullProfile({ id: user.uid, ...data });
+            
+            saveProfile({
+              displayName: data.display_name || user.displayName || "Player",
+              country: data.country || "US",
+              avatarId: data.avatar_id || user.photoURL || "a1",
+              voiceChatDisabled: data.voice_chat_disabled || false,
+            });
+          } else {
+            // Fallback if profile doesn't exist in DB yet (e.g. legacy auth)
+            setName(user.displayName || "Player");
+            setAvatarId(user.photoURL || "a1");
+            setFrameThemeId(undefined);
+            setStats({ gamesPlayed: 0, wins: 0, totalPoints: 0 });
+          }
+        });
       }
     });
-    return () => unsub();
+    return () => {
+      unsubAuth();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   async function save() {
