@@ -205,6 +205,30 @@ function InstructionsPage() {
                   </ul>
                 </div>
               </div>
+
+              <div className="grid gap-4 md:grid-cols-2 pt-2">
+                <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2xl">
+                  <h3 className="text-amber-300 font-bold mb-2 flex items-center gap-2">
+                    <span>👑</span> الترتيب في نهاية المباراة والسلسلة
+                  </h3>
+                  <ul className="text-sm text-amber-200/80 space-y-2 list-disc list-inside leading-relaxed">
+                    <li><strong>المباريات العادية (1 إلى 4):</strong> يتم الترتيب حسب أسبقية إيصال جميع القطع إلى المركز. المنسحبون يحصلون تلقائياً على المراكز الأخيرة.</li>
+                    <li><strong>ختام السلسلة (المباراة الخامسة):</strong> يتم ترتيب الفائزين ببطولة الغرفة بناءً على <strong>إجمالي النقاط المتراكمة</strong> عبر كل جولات السلسلة.</li>
+                    <li><strong>في حال التعادل في النقاط:</strong> يتم كسر التعادل وتكون الأفضلية للاعب الذي حقق مركزاً أفضل في <strong>المباراة الخامسة والأخيرة!</strong></li>
+                  </ul>
+                </div>
+
+                <div className="bg-purple-500/10 border border-purple-500/20 p-5 rounded-2xl">
+                  <h3 className="text-purple-300 font-bold mb-2 flex items-center gap-2">
+                    <span>🌟</span> الترتيب في لوحة الشرف (Leaderboard)
+                  </h3>
+                  <ul className="text-sm text-purple-200/80 space-y-2 list-disc list-inside leading-relaxed">
+                    <li><strong>المعيار الأساسي:</strong> يتم تصنيف اللاعبين عالمياً بناءً على <strong>إجمالي النقاط التراكمية (Total Points)</strong> التي حصدها اللاعب من اللعب والأرباح في مباريات الأونلاين المباشرة.</li>
+                    <li><strong>في حال التعادل في النقاط:</strong> إذا تساوى لاعبان أو أكثر في نفس عدد النقاط الإجمالية، تكون الأسبقية في الترتيب بناءً على أقدمية تسجيل وإنشاء حساب اللاعب.</li>
+                    <li><strong>التحديث والبحث:</strong> تعرض اللوحة أفضل 50 لاعباً، ويمكنك معرفة مركزك الحقيقي بدقة عبر زر "أين مركزي؟" حتى لو لم تكن ضمن الخمسين الأوائل!</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </section>
 
