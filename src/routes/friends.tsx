@@ -537,11 +537,11 @@ function FriendsPage() {
                     const isOnline = friend.isOnline && friend.lastActive && (Date.now() - friend.lastActive < 120000);
                     
                     return (
-                      <div key={friend.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+                      <div key={friend.id} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 p-4 hover:bg-white/5 transition-colors">
                         <div 
                           onClick={() => setSelectedProfile(friend)}
                           title="اضغط لعرض الملف الشخصي للتفاصيل والمستوى"
-                          className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer group"
+                          className="flex items-center gap-3.5 flex-1 min-w-0 cursor-pointer group"
                         >
                           <div className="relative flex-shrink-0">
                             <Avatar id={friend.avatar_id || 'a1'} size={50} frameThemeId={friend.equipped?.frame} />
@@ -549,18 +549,18 @@ function FriendsPage() {
                             <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#1a1b2e] ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-gray-500'}`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-lg group-hover:text-amber-300 transition-colors truncate">{friend.display_name}</div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <div className="font-bold text-base sm:text-lg group-hover:text-amber-300 transition-colors truncate">{friend.display_name}</div>
+                            <div className="text-xs sm:text-sm text-muted-foreground flex flex-wrap items-center gap-2">
                               {isOnline ? (
                                 <span className="text-green-400 font-medium">متصل الآن</span>
                               ) : (
                                 <span>غير متصل</span>
                               )}
-                              {friend.country && <span className="opacity-50">({friend.country})</span>}
+                              {friend.country && <span className="opacity-70">({friend.country})</span>}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0">
                           {selectedFriendsToInvite.has(friend.id) ? (
                             <button 
                               onClick={() => {
@@ -568,7 +568,7 @@ function FriendsPage() {
                                 newSet.delete(friend.id);
                                 setSelectedFriendsToInvite(newSet);
                               }}
-                              className="btn-game !bg-gradient-to-b !from-green-500 !to-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.4)] px-3 py-2 text-sm whitespace-nowrap"
+                              className="btn-game flex-1 sm:flex-initial !bg-gradient-to-b !from-green-500 !to-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.4)] px-3 py-2 text-xs sm:text-sm whitespace-nowrap justify-center"
                             >
                               ✓ تم التحديد
                             </button>
@@ -583,7 +583,7 @@ function FriendsPage() {
                                 newSet.add(friend.id);
                                 setSelectedFriendsToInvite(newSet);
                               }}
-                              className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-3 py-2 text-sm whitespace-nowrap"
+                              className="btn-game flex-1 sm:flex-initial !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-3 py-2 text-xs sm:text-sm whitespace-nowrap justify-center"
                             >
                               + تحديد للدعوة
                             </button>
@@ -591,7 +591,7 @@ function FriendsPage() {
                           <button
                             onClick={() => setFriendToUnfriend(friend)}
                             title="إلغاء الصداقة"
-                            className="btn-ghost !px-3 !py-2 !text-red-400 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-xl transition-all flex items-center gap-1.5 shrink-0 text-xs font-bold whitespace-nowrap"
+                            className="btn-ghost flex-1 sm:flex-initial !px-3 !py-2 !text-red-400 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0 text-xs sm:text-sm font-bold whitespace-nowrap"
                           >
                             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
