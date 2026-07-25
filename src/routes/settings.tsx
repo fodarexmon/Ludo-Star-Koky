@@ -32,6 +32,7 @@ function SettingsPage() {
   const [stats, setStats] = useState<{ gamesPlayed: number, wins: number, totalPoints: number } | null>(null);
   const [fullProfile, setFullProfile] = useState<any | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     let unsubProfile: (() => void) | undefined;
@@ -234,14 +235,14 @@ function SettingsPage() {
           </div>
           
           {userId ? (
-            <div className="pt-4 mt-2 border-t border-border flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground text-center">Signed in to Google. Your profile and stats are synced online.</p>
-              <button onClick={handleSignOut} className="btn-ghost w-full !text-destructive border border-destructive/20 hover:bg-destructive/10">Sign Out</button>
+            <div className="pt-4 mt-2 border-t border-border flex flex-col gap-3" dir="rtl">
+              <p className="text-xs text-muted-foreground text-center">تم تسجيل الدخول بنجاح. ملفك الشخصي وإحصائياتك متزامنة آنياً عبر الإنترنت.</p>
+              <button onClick={() => setShowLogoutConfirm(true)} className="btn-ghost w-full !text-destructive border border-destructive/20 hover:bg-destructive/10 font-bold">تسجيل الخروج 🚪</button>
             </div>
           ) : (
-            <div className="pt-4 mt-2 border-t border-border flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground text-center">Not signed in. Sign in to play online and sync your stats.</p>
-              <Link to="/auth" className="btn-ghost w-full">Sign In with Google</Link>
+            <div className="pt-4 mt-2 border-t border-border flex flex-col gap-3" dir="rtl">
+              <p className="text-xs text-muted-foreground text-center">أنت غير مسجل الدخول حالياً. قم بتسجيل الدخول للعب عبر الإنترنت وحفظ إحصائياتك.</p>
+              <Link to="/auth" className="btn-ghost w-full font-bold">تسجيل الدخول باستخدام حساب Google 🔐</Link>
             </div>
           )}
         </div>
@@ -252,6 +253,38 @@ function SettingsPage() {
           profile={fullProfile ? { ...fullProfile, id: userId, display_name: name, country, avatar_id: avatarId } : { id: userId, display_name: name, country, avatar_id: avatarId, stats: stats || {} }}
           onClose={() => setShowProfileModal(false)}
         />
+      )}
+
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-gradient-to-b from-slate-900 via-zinc-900 to-slate-950 border border-red-500/30 w-full max-w-sm rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.2)] text-center animate-in zoom-in-95 duration-200" dir="rtl">
+            <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h3 className="text-xl font-black text-white mb-2">تأكيد تسجيل الخروج</h3>
+            <p className="text-sm text-gray-300 mb-6 leading-relaxed">
+              هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟<br />
+              <span className="text-xs text-red-400 font-medium block mt-2">⚠️ تنبيه: سيتم إيقاف المزامنة السحابية الفورية لإحصائياتك وألقابك حتى تقم بتسجيل الدخول مجدداً!</span>
+            </p>
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={async () => {
+                  setShowLogoutConfirm(false);
+                  await handleSignOut();
+                }}
+                className="btn-ghost flex-1 !text-red-400 border border-red-500/30 hover:bg-red-500/20 py-2 rounded-xl font-bold transition-all"
+              >
+                نعم، خروج
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="btn-game flex-1 !bg-slate-800 hover:!bg-slate-700 !border-slate-700 py-2 rounded-xl font-bold transition-all"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
