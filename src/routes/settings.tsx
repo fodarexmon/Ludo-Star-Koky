@@ -141,27 +141,27 @@ function SettingsPage() {
             </div>
             <div className="flex-1 bg-secondary group-hover:bg-black/30 transition-colors rounded-xl p-3 pt-5 border border-white/5">
               <div className="text-2xl font-black text-primary drop-shadow">{stats.gamesPlayed}</div>
-              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Games 🎮</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">المباريات 🎮</div>
             </div>
             <div className="flex-1 bg-secondary group-hover:bg-black/30 transition-colors rounded-xl p-3 pt-5 border border-white/5">
               <div className="text-2xl font-black text-emerald-400 drop-shadow">{stats.wins}</div>
-              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Wins 👑</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">الانتصارات 👑</div>
             </div>
             <div className="flex-1 bg-secondary group-hover:bg-black/30 transition-colors rounded-xl p-3 pt-5 border border-white/5">
               <div className="text-2xl font-black text-amber-300 drop-shadow">{stats.totalPoints}</div>
-              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">Points ⭐</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">النقاط ⭐</div>
             </div>
           </div>
         )}
 
         <div className="panel space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium">Display name</label>
+            <label className="mb-1 block text-sm font-medium">اسم العرض</label>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={24}
               className="w-full rounded-lg border border-border bg-secondary px-3 py-2" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Country</label>
+            <label className="mb-1 block text-sm font-medium">الدولة</label>
             <select value={country} onChange={(e) => setCountry(e.target.value)}
               className="w-full rounded-lg border border-border bg-secondary px-3 py-2">
               {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}
@@ -197,9 +197,9 @@ function SettingsPage() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium">Avatar</label>
+              <label className="block text-sm font-medium">الصورة الشخصية</label>
               <label className="cursor-pointer text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full transition-colors">
-                Upload Custom Photo
+                رفع صورة من المعرض
                 <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
               </label>
             </div>
@@ -213,7 +213,7 @@ function SettingsPage() {
                     style={{ margin: frameThemeId ? "10px" : "0" }}
                     onClick={() => setAvatarId("a1")}
                   >
-                    <span className="text-white text-xs font-bold">Remove</span>
+                    <span className="text-white text-xs font-bold">حذف</span>
                   </div>
                 )}
               </div>
