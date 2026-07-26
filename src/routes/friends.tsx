@@ -41,117 +41,141 @@ function FriendsPage() {
       setUserId(user.uid);
       
       const profileRef = doc(db, "profiles", user.uid);
-      getDoc(profileRef).then(snap => {
+      const unsubMyProfile = onSnapshot(profileRef, snap => {
         if (snap.exists()) setMyProfile({ id: snap.id, ...snap.data() });
       });
 
-      const friendsRef = collection(db, `profiles/${user.uid}/friends`);
-      const knownFriendIds: string[] = [];
-      const unsub = onSnapshot(friendsRef, async (snap) => {
-        const friendIds = snap.docs.map(d => d.id);
-        if (friendIds.length === 0) {
+      // Real-time live synchronization for friends list and their individual profiles
+      const friendDocUnsubs: Record<string, () => void> = {};
+      const unsubFriends = onSnapshot(collection(db, `profiles/${user.uid}/friends`), (snap) => {
+        const currentIds = snap.docs.map(d => d.id);
+        
+        Object.keys(friendDocUnsubs).forEach(id => {
+          if (!currentIds.includes(id)) {
+            friendDocUnsubs[id]();
+            delete friendDocUnsubs[id];
+          }
+        });
+
+        if (currentIds.length === 0) {
           setFriends([]);
           setLoading(false);
           return;
         }
+
+        currentIds.forEach(id => {
+          if (!friendDocUnsubs[id]) {
+            friendDocUnsubs[id] = onSnapshot(doc(db, "profiles", id), (pSnap) => {
+              if (pSnap.exists()) {
+                const profileData = { id: pSnap.id, ...pSnap.data() };
+                setFriends(prev => {
+                  const exists = prev.some(f => f.id === id);
+                  if (exists) {
+                    return prev.map(f => f.id === id ? profileData : f);
+                  }
+                  return [...prev, profileData];
+                });
+              } else {
+                setFriends(prev => prev.filter(f => f.id !== id));
+              }
+              setLoading(false);
+            });
+          }
+        });
         
-        // Only fetch profiles for friends we haven't loaded yet
-        const newIds = friendIds.filter(id => !knownFriendIds.includes(id));
-        if (newIds.length > 0) {
-          knownFriendIds.push(...newIds);
-          const chunks = [];
-          for (let i = 0; i < friendIds.length; i += 10) {
-            chunks.push(friendIds.slice(i, i + 10));
-          }
-          let fetched: any[] = [];
-          for (const chunk of chunks) {
-            const q = query(collection(db, "profiles"), where("id", "in", chunk));
-            const pSnap = await getDocs(q);
-            pSnap.forEach(d => fetched.push({ id: d.id, ...d.data() }));
-          }
-          setFriends(prev => {
-            const existingIds = new Set(prev.map(f => f.id));
-            const merged = [...prev, ...fetched.filter(f => !existingIds.has(f.id))];
-            // Remove friends who are no longer in the list
-            return merged.filter(f => friendIds.includes(f.id));
-          });
-        } else {
-          // No new friends — just remove any who were deleted
-          setFriends(prev => prev.filter(f => friendIds.includes(f.id)));
-        }
+        setFriends(prev => prev.filter(f => currentIds.includes(f.id)));
         setLoading(false);
       });
       
-      const requestsRef = collection(db, `profiles/${user.uid}/friend_requests`);
-      const knownReqIds: string[] = [];
-      const unsubReqs = onSnapshot(requestsRef, async (snap) => {
-        const reqIds = snap.docs.map(d => d.id);
-        if (reqIds.length === 0) {
+      // Real-time live synchronization for incoming friend requests
+      const reqDocUnsubs: Record<string, () => void> = {};
+      const unsubReqs = onSnapshot(collection(db, `profiles/${user.uid}/friend_requests`), (snap) => {
+        const currentIds = snap.docs.map(d => d.id);
+        
+        Object.keys(reqDocUnsubs).forEach(id => {
+          if (!currentIds.includes(id)) {
+            reqDocUnsubs[id]();
+            delete reqDocUnsubs[id];
+          }
+        });
+
+        if (currentIds.length === 0) {
           setRequests([]);
           setLoadingReqs(false);
           return;
         }
-        
-        // Fetch profiles for requests
-        const newIds = reqIds.filter(id => !knownReqIds.includes(id));
-        if (newIds.length > 0) {
-          knownReqIds.push(...newIds);
-          const chunks = [];
-          for (let i = 0; i < newIds.length; i += 10) {
-            chunks.push(newIds.slice(i, i + 10));
+
+        currentIds.forEach(id => {
+          if (!reqDocUnsubs[id]) {
+            reqDocUnsubs[id] = onSnapshot(doc(db, "profiles", id), (pSnap) => {
+              if (pSnap.exists()) {
+                const data = { id: pSnap.id, ...pSnap.data() };
+                setRequests(prev => {
+                  const exists = prev.some(r => r.id === id);
+                  if (exists) return prev.map(r => r.id === id ? data : r);
+                  return [...prev, data];
+                });
+              } else {
+                setRequests(prev => prev.filter(r => r.id !== id));
+              }
+              setLoadingReqs(false);
+            });
           }
-          let fetched: any[] = [];
-          for (const chunk of chunks) {
-            const q = query(collection(db, "profiles"), where("id", "in", chunk));
-            const pSnap = await getDocs(q);
-            pSnap.forEach(d => fetched.push({ id: d.id, ...d.data() }));
-          }
-          setRequests(prev => {
-            const existingIds = new Set(prev.map(r => r.id));
-            const merged = [...prev, ...fetched.filter(r => !existingIds.has(r.id))];
-            return merged.filter(r => reqIds.includes(r.id));
-          });
-        } else {
-          setRequests(prev => prev.filter(r => reqIds.includes(r.id)));
-        }
+        });
+
+        setRequests(prev => prev.filter(r => currentIds.includes(r.id)));
         setLoadingReqs(false);
       });
 
-      const sentRequestsRef = collection(db, `profiles/${user.uid}/sent_requests`);
-      const knownSentReqIds: string[] = [];
-      const unsubSentReqs = onSnapshot(sentRequestsRef, async (snap) => {
-        const reqIds = snap.docs.map(d => d.id);
-        if (reqIds.length === 0) {
+      // Real-time live synchronization for sent friend requests
+      const sentReqDocUnsubs: Record<string, () => void> = {};
+      const unsubSentReqs = onSnapshot(collection(db, `profiles/${user.uid}/sent_requests`), (snap) => {
+        const currentIds = snap.docs.map(d => d.id);
+        
+        Object.keys(sentReqDocUnsubs).forEach(id => {
+          if (!currentIds.includes(id)) {
+            sentReqDocUnsubs[id]();
+            delete sentReqDocUnsubs[id];
+          }
+        });
+
+        if (currentIds.length === 0) {
           setSentRequests([]);
           setLoadingSentReqs(false);
           return;
         }
-        
-        const newIds = reqIds.filter(id => !knownSentReqIds.includes(id));
-        if (newIds.length > 0) {
-          knownSentReqIds.push(...newIds);
-          const chunks = [];
-          for (let i = 0; i < newIds.length; i += 10) {
-            chunks.push(newIds.slice(i, i + 10));
+
+        currentIds.forEach(id => {
+          if (!sentReqDocUnsubs[id]) {
+            sentReqDocUnsubs[id] = onSnapshot(doc(db, "profiles", id), (pSnap) => {
+              if (pSnap.exists()) {
+                const data = { id: pSnap.id, ...pSnap.data() };
+                setSentRequests(prev => {
+                  const exists = prev.some(r => r.id === id);
+                  if (exists) return prev.map(r => r.id === id ? data : r);
+                  return [...prev, data];
+                });
+              } else {
+                setSentRequests(prev => prev.filter(r => r.id !== id));
+              }
+              setLoadingSentReqs(false);
+            });
           }
-          let fetched: any[] = [];
-          for (const chunk of chunks) {
-            const q = query(collection(db, "profiles"), where("id", "in", chunk));
-            const pSnap = await getDocs(q);
-            pSnap.forEach(d => fetched.push({ id: d.id, ...d.data() }));
-          }
-          setSentRequests(prev => {
-            const existingIds = new Set(prev.map(r => r.id));
-            const merged = [...prev, ...fetched.filter(r => !existingIds.has(r.id))];
-            return merged.filter(r => reqIds.includes(r.id));
-          });
-        } else {
-          setSentRequests(prev => prev.filter(r => reqIds.includes(r.id)));
-        }
+        });
+
+        setSentRequests(prev => prev.filter(r => currentIds.includes(r.id)));
         setLoadingSentReqs(false);
       });
 
-      return () => { unsub(); unsubReqs(); unsubSentReqs(); };
+      return () => { 
+        unsubMyProfile();
+        unsubFriends(); 
+        unsubReqs(); 
+        unsubSentReqs(); 
+        Object.values(friendDocUnsubs).forEach(u => u());
+        Object.values(reqDocUnsubs).forEach(u => u());
+        Object.values(sentReqDocUnsubs).forEach(u => u());
+      };
     });
   }, []);
 
