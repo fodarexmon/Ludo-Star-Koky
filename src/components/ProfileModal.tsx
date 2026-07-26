@@ -3,8 +3,9 @@ import { Avatar } from "./Avatar";
 import { getCountry } from "@/data/countries";
 import { STORE_ITEMS } from "@/data/store";
 import { ACHIEVEMENTS } from "@/data/achievements";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/integrations/firebase/client";
+import { collection, getDocs, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { db, auth } from "@/integrations/firebase/client";
+import { sendPushNotification } from "@/utils/notifications";
 
 export interface ProfileModalProps {
   profile: any | null;
@@ -22,6 +23,143 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
   }, [onClose]);
 
   const [friendsCount, setFriendsCount] = useState<number>(profile?.friends?.length || profile?.stats?.friendsCount || 0);
+  const [currentUid, setCurrentUid] = useState<string | null>(null);
+  const [myDisplayName, setMyDisplayName] = useState<string>("لاعب");
+  const [friendStatus, setFriendStatus] = useState<"self" | "friend" | "incoming_request" | "sent_request" | "none" | "loading">("self");
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user || !profile) {
+      setFriendStatus("none");
+      return;
+    }
+    const myId = user.uid;
+    setCurrentUid(myId);
+    
+    const targetId = profile.id || profile.uid;
+    if (!targetId || targetId === myId) {
+      setFriendStatus("self");
+      return;
+    }
+
+    setFriendStatus("loading");
+
+    getDoc(doc(db, "profiles", myId)).then(snap => {
+      if (snap.exists() && snap.data()?.display_name) {
+        setMyDisplayName(snap.data().display_name);
+      }
+    });
+
+    let isMounted = true;
+    const checkStatus = async () => {
+      try {
+        const friendSnap = await getDoc(doc(db, `profiles/${myId}/friends`, targetId));
+        if (!isMounted) return;
+        if (friendSnap.exists()) {
+          setFriendStatus("friend");
+          return;
+        }
+
+        const incomingSnap = await getDoc(doc(db, `profiles/${myId}/friend_requests`, targetId));
+        if (!isMounted) return;
+        if (incomingSnap.exists()) {
+          setFriendStatus("incoming_request");
+          return;
+        }
+
+        const sentSnap = await getDoc(doc(db, `profiles/${targetId}/friend_requests`, myId));
+        if (!isMounted) return;
+        if (sentSnap.exists()) {
+          setFriendStatus("sent_request");
+          return;
+        }
+
+        setFriendStatus("none");
+      } catch (e) {
+        console.error("Error checking friend status:", e);
+        if (isMounted) setFriendStatus("none");
+      }
+    };
+
+    checkStatus();
+    return () => { isMounted = false; };
+  }, [profile?.id, profile?.uid]);
+
+  const handleSendRequest = async () => {
+    if (!currentUid || !profile) return;
+    const targetId = profile.id || profile.uid;
+    if (!targetId || targetId === currentUid) return;
+
+    setActionLoading(true);
+    try {
+      await setDoc(doc(db, `profiles/${targetId}/friend_requests`, currentUid), {
+        id: currentUid,
+        timestamp: Date.now()
+      });
+      await setDoc(doc(db, `profiles/${currentUid}/sent_requests`, targetId), {
+        id: targetId,
+        timestamp: Date.now()
+      });
+      await sendPushNotification(
+        targetId,
+        "طلب صداقة جديد! 👥",
+        `يرغب ${myDisplayName} في إضافتك كصديق!`,
+        { type: "friend_request", url: "/friends" }
+      );
+      setFriendStatus("sent_request");
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء إرسال طلب الصداقة.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    if (!currentUid || !profile) return;
+    const targetId = profile.id || profile.uid;
+    if (!targetId) return;
+
+    setActionLoading(true);
+    try {
+      await setDoc(doc(db, `profiles/${currentUid}/friends`, targetId), { id: targetId, addedAt: Date.now() });
+      await setDoc(doc(db, `profiles/${targetId}/friends`, currentUid), { id: currentUid, addedAt: Date.now() });
+      await deleteDoc(doc(db, `profiles/${currentUid}/friend_requests`, targetId));
+      await deleteDoc(doc(db, `profiles/${targetId}/sent_requests`, currentUid));
+      await sendPushNotification(
+        targetId,
+        "تم قبول طلب الصداقة! ✅",
+        `لقد وافق ${myDisplayName} على طلب الصداقة.`,
+        { type: "friend_accept", url: "/friends" }
+      );
+      setFriendStatus("friend");
+      setFriendsCount(prev => prev + 1);
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء الموافقة على الطلب.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectRequest = async () => {
+    if (!currentUid || !profile) return;
+    const targetId = profile.id || profile.uid;
+    if (!targetId) return;
+
+    setActionLoading(true);
+    try {
+      await deleteDoc(doc(db, `profiles/${currentUid}/friend_requests`, targetId));
+      await deleteDoc(doc(db, `profiles/${targetId}/sent_requests`, currentUid));
+      setFriendStatus("none");
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء رفض الطلب.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   useEffect(() => {
     const uid = profile?.id || profile?.uid;
@@ -175,6 +313,56 @@ export function ProfileModal({ profile, rank, onClose }: ProfileModalProps) {
               <span>{country.name}</span>
             </div>
           </div>
+
+          {/* Friendship Action Button / Status Badge */}
+          {friendStatus !== "self" && (
+            <div className="pt-1 flex items-center justify-center gap-2 w-full">
+              {friendStatus === "loading" && (
+                <span className="text-xs text-muted-foreground animate-pulse bg-white/5 px-3.5 py-1.5 rounded-xl border border-white/5">
+                  جاري التحقق من الصداقة...
+                </span>
+              )}
+              {friendStatus === "friend" && (
+                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-bold bg-gradient-to-r from-emerald-500/20 to-green-600/20 border border-emerald-400/50 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                  <span>صديق</span>
+                  <span>🤝</span>
+                </span>
+              )}
+              {friendStatus === "sent_request" && (
+                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-bold bg-sky-500/15 border border-sky-400/40 text-sky-300">
+                  <span>⏳ تم إرسال طلب صداقة</span>
+                </span>
+              )}
+              {friendStatus === "incoming_request" && (
+                <div className="flex items-center justify-center flex-wrap gap-2 bg-white/5 p-2 rounded-xl border border-white/10 shadow-lg w-full max-w-[280px]">
+                  <span className="text-xs text-amber-300 font-bold w-full text-center mb-1">أرسل لك طلب صداقة:</span>
+                  <button
+                    onClick={handleAcceptRequest}
+                    disabled={actionLoading}
+                    className="btn-game flex-1 !bg-gradient-to-b !from-green-500 !to-emerald-600 !px-3 !py-1.5 !text-xs shadow-[0_0_10px_rgba(16,185,129,0.4)] whitespace-nowrap disabled:opacity-50 justify-center"
+                  >
+                    {actionLoading ? "..." : "✅ قبول"}
+                  </button>
+                  <button
+                    onClick={handleRejectRequest}
+                    disabled={actionLoading}
+                    className="btn-ghost flex-1 !px-3 !py-1.5 !text-xs !text-red-400 border border-red-500/30 hover:bg-red-500/20 whitespace-nowrap disabled:opacity-50 justify-center"
+                  >
+                    {actionLoading ? "..." : "❌ رفض"}
+                  </button>
+                </div>
+              )}
+              {friendStatus === "none" && (
+                <button
+                  onClick={handleSendRequest}
+                  disabled={actionLoading}
+                  className="btn-game !bg-gradient-to-b !from-sky-400 !to-blue-600 shadow-[0_0_15px_rgba(14,165,233,0.4)] px-5 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all hover:scale-105 disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <span>{actionLoading ? "جاري الإرسال..." : "أضف صديق +"}</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Badges / Titles (Max 7 sorted by prestige and rarity) */}
           <div className="flex flex-wrap items-center justify-center gap-2 w-full my-1">
