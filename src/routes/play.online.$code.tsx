@@ -1571,16 +1571,23 @@ function ChatMenu({
       timestamp: Date.now(),
     };
 
-    const { doc, updateDoc, increment } = await import("firebase/firestore");
+    const { doc, updateDoc, runTransaction } = await import("firebase/firestore");
 
-    // Deduct coins
+    // Deduct coins atomically without going below 0
     try {
-      await updateDoc(doc(db, "profiles", userId), {
-        "stats.coins": increment(-50),
+      const profRef = doc(db, "profiles", userId);
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(profRef);
+        if (!snap.exists()) throw new Error("No profile");
+        const currentCoins = snap.data()?.stats?.coins || 0;
+        if (currentCoins < 50) {
+          throw new Error("INSUFFICIENT_COINS");
+        }
+        transaction.update(profRef, { "stats.coins": currentCoins - 50 });
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to deduct coins", e);
-      toast.error("حدث خطأ أثناء إرسال الرسالة");
+      toast.error("ليس لديك عدد كافٍ من الكوينز (تحتاج 50 💰)");
       return;
     }
 

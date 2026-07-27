@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/integrations/firebase/client";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { Avatar } from "@/components/Avatar";
 import { loadProfile } from "@/lib/profile";
 
@@ -38,7 +38,13 @@ function HomePage() {
         unsubSnap = onSnapshot(doc(db, "profiles", user.uid), (snap) => {
           if (snap.exists()) {
             const data = snap.data();
-            setCoins(data?.stats?.coins || 0);
+            const currentCoins = data?.stats?.coins !== undefined ? data.stats.coins : 0;
+            if (currentCoins < 0) {
+              updateDoc(doc(db, "profiles", user.uid), { "stats.coins": 500 }).catch(console.error);
+              setCoins(500);
+            } else {
+              setCoins(currentCoins);
+            }
             setAvatarId(data?.avatar_id || user.photoURL || "a1");
             setDisplayName(data?.display_name || user.displayName || "Player");
             setFrameThemeId(data?.equipped?.frame);

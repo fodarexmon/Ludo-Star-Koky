@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/integrations/firebase/client";
-import { doc, onSnapshot, updateDoc, arrayUnion, increment } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, arrayUnion, increment, runTransaction } from "firebase/firestore";
 import type { User } from "firebase/auth";
 import { STORE_ITEMS, type ItemType, type StoreItem } from "@/data/store";
 import { Dice } from "@/components/Dice";
@@ -122,6 +122,7 @@ function StorePage() {
     );
   }
 
+  const [buyingId, setBuyingId] = useState<string | null>(null);
   const coins = profile.stats?.coins || 0;
   const inventory = profile.inventory || [];
   const equipped = profile.equipped || { board: "board_default", dice: "dice_default" };
@@ -130,22 +131,38 @@ function StorePage() {
   const isEquipped = (item: StoreItem) => equipped[item.type] === item.id;
 
   const handleBuy = async (item: StoreItem) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser || buyingId) return;
     if (coins < item.price) {
       toast.error("عذراً، ليس لديك عدد كافٍ من الكوينز!");
       return;
     }
 
+    setBuyingId(item.id);
     try {
-      await updateDoc(doc(db, "profiles", auth.currentUser.uid), {
-        "stats.coins": increment(-item.price),
-        inventory: arrayUnion(item.id),
+      const profRef = doc(db, "profiles", auth.currentUser.uid);
+      await runTransaction(db, async (transaction) => {
+        const sfDoc = await transaction.get(profRef);
+        if (!sfDoc.exists()) throw new Error("Profile not found");
+        const currentCoins = sfDoc.data()?.stats?.coins || 0;
+        if (currentCoins < item.price) {
+          throw new Error("INSUFFICIENT_COINS");
+        }
+        transaction.update(profRef, {
+          "stats.coins": currentCoins - item.price,
+          inventory: arrayUnion(item.id),
+        });
       });
       playCoinSound();
       toast.success(`تم شراء ${item.name} بنجاح! 🎉`);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("حدث خطأ أثناء الشراء.");
+      if (e?.message === "INSUFFICIENT_COINS") {
+        toast.error("عذراً، ليس لديك عدد كافٍ من الكوينز!");
+      } else {
+        toast.error("حدث خطأ أثناء الشراء.");
+      }
+    } finally {
+      setBuyingId(null);
     }
   };
 
@@ -242,9 +259,14 @@ function StorePage() {
                   {!owned ? (
                     <button
                       onClick={() => handleBuy(item)}
-                      className="w-full py-3 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-xl font-bold text-lg hover:brightness-110 flex items-center justify-center gap-2"
+                      disabled={buyingId !== null}
+                      className="w-full py-3 bg-gradient-to-r from-yellow-500 to-amber-600 text-white rounded-xl font-bold text-lg hover:brightness-110 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      شراء بـ {item.price} <img src="/coin.png" alt="Coin" className="w-5 h-5 inline-block" />
+                      {buyingId === item.id ? "جاري الشراء..." : (
+                        <>
+                          شراء بـ {item.price} <img src="/coin.png" alt="Coin" className="w-5 h-5 inline-block" />
+                        </>
+                      )}
                     </button>
                   ) : active ? (
                     <button
