@@ -83,6 +83,7 @@ function StorePage() {
   const [tab, setTab] = useState<ItemType>("board");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [buyingId, setBuyingId] = useState<string | null>(null);
 
   useEffect(() => {
     let unsubSnap: () => void;
@@ -122,7 +123,6 @@ function StorePage() {
     );
   }
 
-  const [buyingId, setBuyingId] = useState<string | null>(null);
   const coins = profile.stats?.coins || 0;
   const inventory = profile.inventory || [];
   const equipped = profile.equipped || { board: "board_default", dice: "dice_default" };
